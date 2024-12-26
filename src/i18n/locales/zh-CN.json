@@ -1,7 +1,7 @@
 {
   "common": {
     "login": "登录",
-    "logout": "退出登录",
+    "logout": "登出",
     "upload": "上传",
     "delete": "删除",
     "cancel": "取消",
@@ -25,7 +25,15 @@
   "home": {
     "title": "云图",
     "welcome": "欢迎使用云图",
-    "uploadImage": "上传图片",
-    "noImages": "暂无图片"
+    "uploadFile": "上传文件",
+    "addConnection": "添加连接",
+    "move": "移动",
+    "fileName": "文件名",
+    "fileSize": "大小",
+    "lastModified": "修改时间",
+    "actions": "操作",
+    "noFiles": "暂无文件",
+    "newFolder": "新建文件夹",
+    "download": "下载"
   }
 } 

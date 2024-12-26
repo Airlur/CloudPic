@@ -25,7 +25,15 @@
   "home": {
     "title": "クラウドピック",
     "welcome": "クラウドピックへようこそ",
-    "uploadImage": "画像をアップロード",
-    "noImages": "画像がありません"
+    "uploadFile": "ファイルをアップロード",
+    "addConnection": "接続を追加",
+    "move": "移動",
+    "fileName": "ファイル名",
+    "fileSize": "サイズ",
+    "lastModified": "更新日時",
+    "actions": "操作",
+    "noFiles": "ファイルがありません",
+    "newFolder": "新規フォルダ",
+    "download": "ダウンロード"
   }
 } 

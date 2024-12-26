@@ -25,7 +25,15 @@
   "home": {
     "title": "CloudPic",
     "welcome": "Welcome to CloudPic",
-    "uploadImage": "Upload Image",
-    "noImages": "No images"
+    "uploadFile": "Upload File",
+    "addConnection": "Add Connection",
+    "move": "Move",
+    "fileName": "File Name",
+    "fileSize": "Size",
+    "lastModified": "Last Modified",
+    "actions": "Actions",
+    "noFiles": "No files",
+    "newFolder": "New Folder",
+    "download": "Download"
   }
 } 
