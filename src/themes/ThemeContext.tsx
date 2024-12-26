@@ -7,6 +7,7 @@ type ThemeMode = 'light' | 'dark';
 interface ThemeContextType {
   mode: ThemeMode;
   toggleTheme: () => void;
+  setTheme: (mode: ThemeMode) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -35,6 +36,12 @@ export const CustomThemeProvider: React.FC<{ children: React.ReactNode }> = ({ c
     });
   };
 
+  // 直接设置主题
+  const setTheme = (newMode: ThemeMode) => {
+    setMode(newMode);
+    localStorage.setItem('themeMode', newMode);
+  };
+
   // 根据系统主题自动设置初始主题
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -54,7 +61,7 @@ export const CustomThemeProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const theme = getTheme(mode);
 
   return (
-    <ThemeContext.Provider value={{ mode, toggleTheme }}>
+    <ThemeContext.Provider value={{ mode, toggleTheme, setTheme }}>
       <ThemeProvider theme={theme}>
         {children}
       </ThemeProvider>

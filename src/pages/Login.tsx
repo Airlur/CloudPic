@@ -1,11 +1,13 @@
 import React, { useState, ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Box, TextField, Button, Typography, Paper, IconButton, InputAdornment, Snackbar, Alert, Fade } from '@mui/material';
+import { Box, TextField, Button, Typography, Paper, IconButton, InputAdornment, useTheme } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import CloudIcon from '@mui/icons-material/Cloud';
-import { LanguageSwitch } from '@/components';
+import { DarkMode as DarkModeIcon, LightMode as LightModeIcon } from '@mui/icons-material';
+import { LanguageSwitch, CustomTooltip, CustomAlert } from '@/components';
+import { useTheme as useCustomTheme } from '@/themes/ThemeContext';
 
 // 样式定义
 const styles = {
@@ -17,10 +19,13 @@ const styles = {
     justifyContent: 'center',
     position: 'relative'
   },
-  languageSwitch: {
+  settingsContainer: {
     position: 'absolute',
     top: '16px',
-    right: '16px'
+    right: '16px',
+    display: 'flex',
+    gap: '8px',
+    alignItems: 'center'
   },
   container: {
     display: 'flex',
@@ -29,17 +34,19 @@ const styles = {
     width: '100%',
     maxWidth: '400px'
   },
-  paper: {
+  paper: (theme: any) => ({
     padding: '32px',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     width: '100%',
-    background: 'linear-gradient(to bottom right, #ffffff, #f5f5f5)'
-  },
+    background: theme.palette.mode === 'dark' 
+      ? 'linear-gradient(to bottom right, #424242, #303030)'
+      : 'linear-gradient(to bottom right, #ffffff, #f5f5f5)',
+    color: theme.palette.text.primary
+  }),
   cloudIcon: {
     fontSize: '48px',
-    color: 'primary.main',
     marginBottom: '16px'
   },
   form: {
@@ -54,6 +61,8 @@ const styles = {
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const theme = useTheme();
+  const { mode, toggleTheme } = useCustomTheme();
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [alert, setAlert] = useState<{
@@ -90,24 +99,33 @@ const Login: React.FC = () => {
 
   return (
     <Box sx={styles.pageContainer}>
-      <Snackbar 
-        open={alert.show} 
-        autoHideDuration={2000} 
+      <CustomAlert 
+        open={alert.show}
+        message={alert.message}
+        severity={alert.severity}
         onClose={handleCloseAlert}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        TransitionComponent={Fade}
-      >
-        <Alert onClose={handleCloseAlert} severity={alert.severity} sx={{ width: '100%' }}>
-          {alert.message}
-        </Alert>
-      </Snackbar>
+      />
       
-      <Box sx={styles.languageSwitch}>
+      <Box sx={styles.settingsContainer}>
+        <CustomTooltip 
+          title={mode === 'light' ? t('common.darkMode') : t('common.lightMode')}
+          arrow
+          placement="bottom"
+          enterDelay={200}
+          leaveDelay={0}
+        >
+          <IconButton 
+            onClick={toggleTheme} 
+            color="inherit"
+          >
+            {mode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
+          </IconButton>
+        </CustomTooltip>
         <LanguageSwitch />
       </Box>
       <Box sx={styles.container}>
-        <Paper sx={styles.paper} elevation={3}>
-          <CloudIcon sx={styles.cloudIcon} />
+        <Paper sx={styles.paper(theme)} elevation={3}>
+          <CloudIcon sx={styles.cloudIcon} color="primary" />
           <Typography component="h1" variant="h5" gutterBottom>
             CloudPic
           </Typography>

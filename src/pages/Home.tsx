@@ -2,14 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Box, Drawer, AppBar, Toolbar, Typography, Button, List, ListItem, ListItemIcon, 
-  ListItemText, IconButton, Divider, Snackbar, Alert, Fade, Paper, Table, TableBody, 
+  ListItemText, IconButton, Divider, Paper, Table, TableBody, 
   TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 import { CloudUpload as CloudUploadIcon, Logout as LogoutIcon, Storage as StorageIcon,
   Add as AddIcon, Delete as DeleteIcon, DriveFileMove as DriveFileMoveIcon,
   DarkMode as DarkModeIcon, LightMode as LightModeIcon, Cloud as CloudIcon,
   CreateNewFolder as CreateNewFolderIcon, Download as DownloadIcon } from '@mui/icons-material';
-import LanguageSwitch from '@/components/common/LanguageSwitch';
-import CustomTooltip from '@/components/feedback/CustomTooltip';
+import { LanguageSwitch, CustomTooltip, CustomAlert } from '@/components';
 import { useTheme } from '@/themes/ThemeContext';
 
 const DRAWER_WIDTH = 240;
@@ -121,8 +120,8 @@ const MOCK_FILES = [
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
-  const { mode, toggleTheme } = useTheme();
+  const { t, i18n } = useTranslation();
+  const { mode, setTheme, toggleTheme } = useTheme();
   const [alert, setAlert] = useState<{
     show: boolean;
     message: string;
@@ -131,12 +130,15 @@ const Home: React.FC = () => {
 
   const handleLogout = () => {
     try {
+      // 重置认证状态
       localStorage.removeItem('isAuthenticated');
+      
       setAlert({
         show: true,
         message: t('logout.success'),
         severity: 'success'
       });
+      
       setTimeout(() => {
         navigate('/login');
       }, 500);
@@ -290,17 +292,12 @@ const Home: React.FC = () => {
         </TableContainer>
       </Box>
 
-      <Snackbar 
-        open={alert.show} 
-        autoHideDuration={2000} 
+      <CustomAlert 
+        open={alert.show}
+        message={alert.message}
+        severity={alert.severity}
         onClose={handleCloseAlert}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        TransitionComponent={Fade}
-      >
-        <Alert onClose={handleCloseAlert} severity={alert.severity} sx={{ width: '100%' }}>
-          {alert.message}
-        </Alert>
-      </Snackbar>
+      />
     </Box>
   );
 };
