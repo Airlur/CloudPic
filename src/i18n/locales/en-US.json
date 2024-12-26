@@ -8,7 +8,9 @@
     "confirm": "Confirm",
     "save": "Save",
     "edit": "Edit",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "darkMode": "Switch to Dark Mode",
+    "lightMode": "Switch to Light Mode"
   },
   "login": {
     "title": "Login",

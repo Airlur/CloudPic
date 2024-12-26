@@ -8,7 +8,9 @@
     "confirm": "確認",
     "save": "保存",
     "edit": "編集",
-    "loading": "読み込み中..."
+    "loading": "読み込み中...",
+    "darkMode": "ダークモードに切り替え",
+    "lightMode": "ライトモードに切り替え"
   },
   "login": {
     "title": "ログイン",

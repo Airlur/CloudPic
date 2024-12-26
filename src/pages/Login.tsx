@@ -5,7 +5,7 @@ import { Box, TextField, Button, Typography, Paper, IconButton, InputAdornment, 
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import CloudIcon from '@mui/icons-material/Cloud';
-import LanguageSwitch from '../components/LanguageSwitch';
+import { LanguageSwitch } from '@/components';
 
 // 样式定义
 const styles = {

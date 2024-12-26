@@ -1,23 +1,12 @@
 import { RouterProvider } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import router from './routes/Router';
 import './i18n/i18n';
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#2196f3',
-    },
-    background: {
-      default: '#f5f5f5',
-    },
-  },
-});
+import { CustomThemeProvider } from './themes/ThemeContext';
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
+    <CustomThemeProvider>
       <CssBaseline />
       <RouterProvider 
         router={router} 
@@ -26,7 +15,7 @@ function App() {
           v7_relativeSplatPath: true
         } as any}
       />
-    </ThemeProvider>
+    </CustomThemeProvider>
   );
 }
 

@@ -1,41 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  Box,
-  Drawer,
-  AppBar,
-  Toolbar,
-  Typography,
-  Button,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  IconButton,
-  Divider,
-  Snackbar,
-  Alert,
-  Fade,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-} from '@mui/material';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import LogoutIcon from '@mui/icons-material/Logout';
-import StorageIcon from '@mui/icons-material/Storage';
-import AddIcon from '@mui/icons-material/Add';
-import DeleteIcon from '@mui/icons-material/Delete';
-import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import CloudIcon from '@mui/icons-material/Cloud';
-import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
-import DownloadIcon from '@mui/icons-material/Download';
-import LanguageSwitch from '../components/LanguageSwitch';
+import { Box, Drawer, AppBar, Toolbar, Typography, Button, List, ListItem, ListItemIcon, 
+  ListItemText, IconButton, Divider, Snackbar, Alert, Fade, Paper, Table, TableBody, 
+  TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { CloudUpload as CloudUploadIcon, Logout as LogoutIcon, Storage as StorageIcon,
+  Add as AddIcon, Delete as DeleteIcon, DriveFileMove as DriveFileMoveIcon,
+  DarkMode as DarkModeIcon, LightMode as LightModeIcon, Cloud as CloudIcon,
+  CreateNewFolder as CreateNewFolderIcon, Download as DownloadIcon } from '@mui/icons-material';
+import LanguageSwitch from '@/components/common/LanguageSwitch';
+import CustomTooltip from '@/components/feedback/CustomTooltip';
+import { useTheme } from '@/themes/ThemeContext';
 
 const DRAWER_WIDTH = 240;
 
@@ -147,6 +122,7 @@ const MOCK_FILES = [
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { mode, toggleTheme } = useTheme();
   const [alert, setAlert] = useState<{
     show: boolean;
     message: string;
@@ -188,9 +164,21 @@ const Home: React.FC = () => {
             </Typography>
           </Box>
           <Box sx={styles.toolbarRight}>
-            <IconButton color="inherit" sx={styles.toolbarIcon}>
-              <DarkModeIcon />
-            </IconButton>
+            <CustomTooltip 
+              title={mode === 'light' ? t('common.darkMode') : t('common.lightMode')}
+              arrow
+              placement="bottom"
+              enterDelay={200}
+              leaveDelay={0}
+            >
+              <IconButton 
+                onClick={toggleTheme} 
+                color="inherit" 
+                sx={styles.toolbarIcon}
+              >
+                {mode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
+              </IconButton>
+            </CustomTooltip>
             <LanguageSwitch />
             <Button
               color="inherit"
