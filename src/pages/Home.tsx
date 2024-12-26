@@ -120,8 +120,8 @@ const MOCK_FILES = [
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation();
-  const { mode, setTheme, toggleTheme } = useTheme();
+  const { t } = useTranslation();
+  const { mode, toggleTheme } = useTheme();
   const [alert, setAlert] = useState<{
     show: boolean;
     message: string;
