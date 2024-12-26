@@ -1,0 +1,31 @@
+{
+  "common": {
+    "login": "Login",
+    "logout": "Logout",
+    "upload": "Upload",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "edit": "Edit",
+    "loading": "Loading..."
+  },
+  "login": {
+    "title": "Login",
+    "password": "Password",
+    "wrongPassword": "Wrong password",
+    "enterPassword": "Please enter password",
+    "loginSuccess": "Login successful",
+    "loginFailed": "Login failed"
+  },
+  "logout": {
+    "success": "Logged out successfully",
+    "failed": "Logout failed"
+  },
+  "home": {
+    "title": "CloudPic",
+    "welcome": "Welcome to CloudPic",
+    "uploadImage": "Upload Image",
+    "noImages": "No images"
+  }
+} 
