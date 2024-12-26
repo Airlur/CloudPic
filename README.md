@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[English](./docs/translations/README.en.md) | [简体中文](./README.md) | [日本語](./docs/translations/README.ja.md)
+[English](./docs/translations/README.en.md) | 简体中文 | [日本語](./docs/translations/README.ja.md)
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FAirlur%2FCloudPic)
 
