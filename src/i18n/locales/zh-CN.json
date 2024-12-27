@@ -36,6 +36,9 @@
     "actions": "操作",
     "noFiles": "暂无文件",
     "newFolder": "新建文件夹",
-    "download": "下载"
+    "download": "下载",
+    "root": "首页",
+    "selectService": "请选择存储服务",
+    "upDirectory": "返回上级"
   }
 } 

@@ -36,6 +36,9 @@
     "actions": "操作",
     "noFiles": "ファイルがありません",
     "newFolder": "新規フォルダ",
-    "download": "ダウンロード"
+    "download": "ダウンロード",
+    "root": "ホーム",
+    "selectService": "ストレージサービスを選択してください",
+    "upDirectory": "親フォルダへ"
   }
 } 

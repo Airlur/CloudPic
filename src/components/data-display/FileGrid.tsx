@@ -1,6 +1,5 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
-import { Grid, Card, CardContent, CardMedia, Typography, IconButton, Box, Checkbox, FormControlLabel } from '@mui/material';
+import { Grid, Card, CardContent, CardMedia, Typography, IconButton, Box, Checkbox } from '@mui/material';
 import { Delete as DeleteIcon, DriveFileMove as MoveIcon, Download as DownloadIcon } from '@mui/icons-material';
 import { FileItem, FileActionProps } from '@/types/file';
 
@@ -70,8 +69,6 @@ const FileGrid: React.FC<FileGridProps> = ({
   onDownload,
   onPreview,
 }) => {
-  const { t } = useTranslation();
-
   const handlePreview = (file: FileItem, event: React.MouseEvent) => {
     if ((event.target as HTMLElement).closest('.file-actions')) {
       return;

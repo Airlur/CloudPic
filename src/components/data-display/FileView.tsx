@@ -11,6 +11,7 @@ interface FileViewProps extends FileActionProps {
   selectedFiles: Set<number | string>;
   onViewModeChange: (mode: ViewMode) => void;
   onToggleSelect: (fileId: number | string) => void;
+  breadcrumbs?: React.ReactNode;
 }
 
 const styles = {
@@ -21,9 +22,17 @@ const styles = {
   },
   header: {
     display: 'flex',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 2,
     marginBottom: 0.5,
+  },
+  headerLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 1,
+  },
+  headerRight: {
+    marginLeft: 'auto',
   },
   viewToggle: {
     '& .MuiToggleButton-root': {
@@ -41,6 +50,7 @@ const FileView: React.FC<FileViewProps> = ({
   selectedFiles,
   onViewModeChange,
   onToggleSelect,
+  breadcrumbs,
   ...actionProps
 }) => {
   const handleViewModeChange = (
@@ -60,26 +70,31 @@ const FileView: React.FC<FileViewProps> = ({
   return (
     <Box sx={styles.container}>
       <Box sx={styles.header}>
-        <Checkbox
-          checked={files.length > 0 && files.every(file => selectedFiles.has(file.id))}
-          indeterminate={files.some(file => selectedFiles.has(file.id)) && !files.every(file => selectedFiles.has(file.id))}
-          onChange={handleSelectAll}
-          sx={styles.checkbox}
-        />
-        <ToggleButtonGroup
-          value={viewMode}
-          exclusive
-          onChange={handleViewModeChange}
-          size="small"
-          sx={styles.viewToggle}
-        >
-          <ToggleButton value="grid" aria-label="grid view">
-            <GridViewIcon />
-          </ToggleButton>
-          <ToggleButton value="list" aria-label="list view">
-            <ListViewIcon />
-          </ToggleButton>
-        </ToggleButtonGroup>
+        <Box sx={styles.headerLeft}>
+          <Checkbox
+            checked={files.length > 0 && files.every(file => selectedFiles.has(file.id))}
+            indeterminate={files.some(file => selectedFiles.has(file.id)) && !files.every(file => selectedFiles.has(file.id))}
+            onChange={handleSelectAll}
+            sx={styles.checkbox}
+          />
+          {breadcrumbs}
+        </Box>
+        <Box sx={styles.headerRight}>
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={handleViewModeChange}
+            size="small"
+            sx={styles.viewToggle}
+          >
+            <ToggleButton value="grid" aria-label="grid view">
+              <GridViewIcon />
+            </ToggleButton>
+            <ToggleButton value="list" aria-label="list view">
+              <ListViewIcon />
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
       </Box>
 
       {viewMode === 'grid' ? (

@@ -6,6 +6,7 @@ export interface FileItem {
   type: 'file' | 'folder';
   mimeType?: string;
   thumbnailUrl?: string;
+  path: string;
 }
 
 export type ViewMode = 'grid' | 'list';

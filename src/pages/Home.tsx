@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Box, Drawer, AppBar, Toolbar, Typography, Button, List, ListItem, ListItemIcon, 
   ListItemText, IconButton, Divider } from '@mui/material';
@@ -106,70 +106,169 @@ const styles = {
       backgroundColor: '#e53935',
     },
   },
+  breadcrumbsContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '8px 16px',
+    backgroundColor: '#f5f5f5',
+    borderRadius: '4px',
+    marginBottom: 2,
+  },
+  breadcrumbs: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 1,
+  },
+  breadcrumbButton: {
+    textTransform: 'none',
+    padding: '4px 8px',
+    minWidth: 'auto',
+    color: 'primary.light',
+    '&.active': {
+      backgroundColor: 'rgba(25, 118, 210, 0.08)',
+      color: 'primary.main',
+      fontWeight: 500,
+    },
+    '&:hover': {
+      backgroundColor: 'rgba(0, 0, 0, 0.04)',
+    },
+    '&.root': {
+      color: 'primary.light',
+      fontWeight: 500,
+      '&:hover': {
+        backgroundColor: 'rgba(25, 118, 210, 0.08)',
+      },
+      '&.active': {
+        color: 'primary.main',
+      },
+    },
+  },
+  breadcrumbDivider: {
+    color: 'text.disabled',
+    userSelect: 'none',
+  },
 } as const;
 
 // 模拟的存储服务数据
 const STORAGE_SERVICES = [
-  { id: 'b2', name: 'Backblaze B2', type: 'B2' },
-  { id: 'r2', name: 'Cloudflare R2', type: 'R2' },
+  { id: 'b2', name: 'Backblaze B2', type: 'B2', buckets: ['photos', 'documents'] },
+  { id: 'r2', name: 'Cloudflare R2', type: 'R2', buckets: ['assets', 'backups'] },
 ];
 
-// 模拟的文件数据
-const MOCK_FILES: FileItem[] = [
-  { 
-    id: 1, 
-    name: 'example1.jpg', 
-    size: '2.4 MB', 
-    modified: '2023-12-26 14:30',
-    type: 'file',
-    mimeType: 'image/jpeg',
-    thumbnailUrl: '/placeholder.png'
-  },
-  { 
-    id: 2, 
-    name: 'document.pdf', 
-    size: '1.1 MB', 
-    modified: '2023-12-25 09:15',
-    type: 'file',
-    mimeType: 'application/pdf'
-  },
-  {
-    id: 3,
-    name: 'Images',
-    size: '0 KB',
-    modified: '2023-12-24 10:00',
-    type: 'folder'
-  },
-  {
-    id: 4,
-    name: 'report2023.docx',
-    size: '3.2 MB',
-    modified: '2023-12-23 16:45',
-    type: 'file',
-    mimeType: 'application/msword'
-  },
-  {
-    id: 5,
-    name: 'project-files',
-    size: '1.5 GB',
-    modified: '2023-12-22 11:20',
-    type: 'folder'
+// 模拟的文件数据，根据不同的存储桶返回不同的数据
+const getMockFiles = (serviceId: string, path: string): FileItem[] => {
+  if (serviceId === 'b2') {
+    return [
+      { 
+        id: 1, 
+        name: 'example1.jpg', 
+        size: '2.4 MB', 
+        modified: '2023-12-26 14:30',
+        type: 'file',
+        mimeType: 'image/jpeg',
+        path: path
+      },
+      { 
+        id: 2, 
+        name: 'documents', 
+        size: '1.1 MB', 
+        modified: '2023-12-25 09:15',
+        type: 'folder',
+        path: path
+      }
+    ];
   }
-];
+  return [
+    { 
+      id: 3, 
+      name: 'assets.zip', 
+      size: '5.4 MB', 
+      modified: '2023-12-26 15:30',
+      type: 'file',
+      mimeType: 'application/zip',
+      path: path
+    },
+    { 
+      id: 4, 
+      name: 'backups', 
+      size: '2.1 GB', 
+      modified: '2023-12-25 19:15',
+      type: 'folder',
+      path: path
+    }
+  ];
+};
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { mode, toggleTheme } = useTheme();
+  const location = useLocation();
   
   // 视图状态
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [selectedFiles, setSelectedFiles] = useState<Set<number | string>>(new Set());
+  const [currentService, setCurrentService] = useState<string>('');
+  const [currentPath, setCurrentPath] = useState<string>('/');
+  const [files, setFiles] = useState<FileItem[]>([]);
   const [alert, setAlert] = useState<{
     show: boolean;
     message: string;
     severity: 'success' | 'error';
   }>({ show: false, message: '', severity: 'success' });
+  
+  // 从路由中获取当前服务和路径
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const service = params.get('service') || '';
+    const path = params.get('path') || '/';
+    
+    setCurrentService(service);
+    setCurrentPath(path);
+    
+    if (service) {
+      setFiles(getMockFiles(service, path));
+    }
+  }, [location]);
+
+  // 处理存储服务切换
+  const handleServiceSelect = (serviceId: string) => {
+    navigate(`/?service=${serviceId}&path=/`);
+  };
+
+  // 处理文件夹导航
+  const handlePreview = (file: FileItem) => {
+    if (file.type === 'folder') {
+      const newPath = currentPath === '/' 
+        ? `/${file.name}` 
+        : `${currentPath}/${file.name}`;
+      navigate(`/?service=${currentService}&path=${encodeURIComponent(newPath)}`);
+    } else {
+      // 处理文件预览
+      console.log('Preview file:', file.name);
+    }
+  };
+
+  // 处理返回上级目录
+  const handleNavigateUp = () => {
+    if (currentPath === '/') return;
+    const parentPath = currentPath.split('/').slice(0, -1).join('/') || '/';
+    navigate(`/?service=${currentService}&path=${encodeURIComponent(parentPath)}`);
+  };
+
+  // 生成面包屑导航数据
+  const getBreadcrumbs = () => {
+    if (currentPath === '/') return [{ name: '/', path: '/' }];
+    
+    const paths = currentPath.split('/').filter(Boolean);
+    return [
+      { name: '/', path: '/' },
+      ...paths.map((name, index) => ({
+        name,
+        path: '/' + paths.slice(0, index + 1).join('/')
+      }))
+    ];
+  };
 
   // 文件操作处理函数
   const handleDelete = (file: FileItem) => {
@@ -194,16 +293,6 @@ const Home: React.FC = () => {
       message: t('home.downloadStarted', { name: file.name }),
       severity: 'success'
     });
-  };
-
-  const handlePreview = (file: FileItem) => {
-    if (file.type === 'folder') {
-      // 处理文件夹点击
-      console.log('Open folder:', file.name);
-    } else {
-      // 处理文件预览
-      console.log('Preview file:', file.name);
-    }
   };
 
   const handleSelect = (file: FileItem) => {
@@ -301,70 +390,116 @@ const Home: React.FC = () => {
         <Divider />
         <List>
           {STORAGE_SERVICES.map((service) => (
-            <ListItem button key={service.id}>
+            <ListItem 
+              button 
+              key={service.id}
+              selected={currentService === service.id}
+              onClick={() => handleServiceSelect(service.id)}
+            >
               <ListItemIcon>
-                <StorageIcon />
+                <StorageIcon color={currentService === service.id ? "primary" : "inherit"} />
               </ListItemIcon>
-              <ListItemText primary={service.name} secondary={service.type} />
+              <ListItemText 
+                primary={service.name} 
+                secondary={service.type} 
+              />
             </ListItem>
           ))}
         </List>
       </Drawer>
 
       <Box component="main" sx={styles.content}>
-        <Box sx={styles.fileActions}>
-          <Button
-            variant="contained"
-            startIcon={<CreateNewFolderIcon />}
-            sx={styles.createButton}
-          >
-            {t('home.newFolder')}
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<CloudUploadIcon />}
-            sx={styles.uploadButton}
-          >
-            {t('home.uploadFile')}
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<DownloadIcon />}
-            sx={styles.actionButton}
-            disabled={selectedFiles.size === 0}
-          >
-            {t('home.download')}
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<DeleteIcon />}
-            sx={styles.deleteButton}
-            disabled={selectedFiles.size === 0}
-          >
-            {t('common.delete')}
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<DriveFileMoveIcon />}
-            sx={styles.actionButton}
-            disabled={selectedFiles.size === 0}
-          >
-            {t('home.move')}
-          </Button>
-        </Box>
+        {currentService ? (
+          <>
+            <Box sx={styles.fileActions}>
+              {currentPath !== '/' && (
+                <Button
+                  variant="contained"
+                  onClick={handleNavigateUp}
+                  sx={styles.actionButton}
+                >
+                  {t('home.upDirectory')}
+                </Button>
+              )}
+              <Button
+                variant="contained"
+                startIcon={<CreateNewFolderIcon />}
+                sx={styles.createButton}
+              >
+                {t('home.newFolder')}
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<CloudUploadIcon />}
+                sx={styles.uploadButton}
+              >
+                {t('home.uploadFile')}
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<DownloadIcon />}
+                sx={styles.actionButton}
+                disabled={selectedFiles.size === 0}
+              >
+                {t('home.download')}
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<DeleteIcon />}
+                sx={styles.deleteButton}
+                disabled={selectedFiles.size === 0}
+              >
+                {t('common.delete')}
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<DriveFileMoveIcon />}
+                sx={styles.actionButton}
+                disabled={selectedFiles.size === 0}
+              >
+                {t('home.move')}
+              </Button>
+            </Box>
 
-        <FileView
-          files={MOCK_FILES}
-          viewMode={viewMode}
-          selectedFiles={selectedFiles}
-          onViewModeChange={setViewMode}
-          onToggleSelect={handleToggleSelect}
-          onDelete={handleDelete}
-          onMove={handleMove}
-          onDownload={handleDownload}
-          onSelect={handleSelect}
-          onPreview={handlePreview}
-        />
+            <FileView
+              files={files}
+              viewMode={viewMode}
+              selectedFiles={selectedFiles}
+              onViewModeChange={setViewMode}
+              onToggleSelect={handleToggleSelect}
+              onDelete={handleDelete}
+              onMove={handleMove}
+              onDownload={handleDownload}
+              onSelect={handleSelect}
+              onPreview={handlePreview}
+              breadcrumbs={
+                <Box sx={styles.breadcrumbs}>
+                  {getBreadcrumbs().map((crumb, index, array) => (
+                    <React.Fragment key={crumb.path}>
+                      {index > 0 && (
+                        <Typography variant="body2" sx={styles.breadcrumbDivider}>
+                          /
+                        </Typography>
+                      )}
+                      <Button
+                        size="small"
+                        onClick={() => navigate(`/?service=${currentService}&path=${encodeURIComponent(crumb.path)}`)}
+                        sx={styles.breadcrumbButton}
+                        className={`${crumb.name === '/' ? 'root' : ''} ${index === array.length - 1 ? 'active' : ''}`}
+                      >
+                        {crumb.name === '/' ? t('home.root') : crumb.name}
+                      </Button>
+                    </React.Fragment>
+                  ))}
+                </Box>
+              }
+            />
+          </>
+        ) : (
+          <Typography variant="h6" sx={{ textAlign: 'center', mt: 4 }}>
+            {t('home.selectService')}
+          </Typography>
+        )}
       </Box>
 
       <CustomAlert 

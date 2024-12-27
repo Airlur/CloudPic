@@ -36,6 +36,9 @@
     "actions": "Actions",
     "noFiles": "No files",
     "newFolder": "New Folder",
-    "download": "Download"
+    "download": "Download",
+    "root": "Home",
+    "selectService": "Please select a storage service",
+    "upDirectory": "Up to parent"
   }
 } 
