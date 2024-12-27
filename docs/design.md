@@ -289,10 +289,9 @@ interface StorageConnection {
 │   ├── /pages         # 页面组件
 │   │   ├── Login.tsx  # 登录页面
 │   │   └── Home.tsx   # 主页面
-│   ├── /services      # 服务层
-│   │   └── /auth      # 认证服务
 │   ├── /utils         # 工具函数
-│   │   └── storage.ts # 本地存储工具
+│   │   ├── storage.ts # 本地存储工具
+│   │   └── auth.ts    # 认证工具
 │   ├── /themes        # 主题相关
 │   │   ├── theme.ts   # 主题配置
 │   │   └── ThemeContext.tsx # 主题上下文
@@ -310,6 +309,31 @@ interface StorageConnection {
 ├── package.json       # 项目依赖
 └── README.md          # 项目说明
 ```
+
+### 认证方案
+
+项目使用简单的密码认证方式：
+
+1. **密码配置**：
+   - 通过环境变量 `ACCESS_PASSWORD` 配置访问密码
+   - 密码要求：至少8位，必须包含数字和字母
+
+2. **认证流程**：
+   - 用户输入密码
+   - 与环境变量中的密码进行比对
+   - 验证通过后生成带过期时间的token（24小时有效）
+   - token存储在localStorage中
+
+3. **登录状态管理**：
+   - token包含时间戳和过期时间
+   - 使用Base64编码存储token信息
+   - 定期检查token有效性
+   - token过期自动跳转登录页
+
+4. **安全考虑**：
+   - 密码通过环境变量配置，不会暴露在前端代码中
+   - token具有过期机制，降低安全风险
+   - 可以随时通过更改环境变量修改访问密码
 
 ### 交互流程
 

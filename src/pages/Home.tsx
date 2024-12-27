@@ -10,6 +10,7 @@ import { CloudUpload as CloudUploadIcon, Logout as LogoutIcon, Storage as Storag
   CreateNewFolder as CreateNewFolderIcon, Download as DownloadIcon } from '@mui/icons-material';
 import { LanguageSwitch, CustomTooltip, CustomAlert } from '@/components';
 import { useTheme } from '@/themes/ThemeContext';
+import { logout } from '@/utils/auth';
 
 const DRAWER_WIDTH = 240;
 
@@ -130,8 +131,7 @@ const Home: React.FC = () => {
 
   const handleLogout = () => {
     try {
-      // 重置认证状态
-      localStorage.removeItem('isAuthenticated');
+      logout(); // 使用新的logout函数
       
       setAlert({
         show: true,

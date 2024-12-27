@@ -8,6 +8,7 @@ import CloudIcon from '@mui/icons-material/Cloud';
 import { DarkMode as DarkModeIcon, LightMode as LightModeIcon } from '@mui/icons-material';
 import { LanguageSwitch, CustomTooltip, CustomAlert } from '@/components';
 import { useTheme as useCustomTheme } from '@/themes/ThemeContext';
+import { login } from '@/utils/auth';
 
 // 样式定义
 const styles = {
@@ -63,6 +64,7 @@ const Login: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const { mode, toggleTheme } = useCustomTheme();
+  
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [alert, setAlert] = useState<{
@@ -73,14 +75,14 @@ const Login: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === import.meta.env.ACCESS_PASSWORD) {
-      localStorage.setItem('isAuthenticated', 'true');
+    const success = login(password);
+    
+    if (success) {
       setAlert({
         show: true,
         message: t('login.loginSuccess'),
         severity: 'success'
       });
-      // 短暂延迟后导航
       setTimeout(() => {
         navigate('/');
       }, 500);
@@ -135,9 +137,13 @@ const Login: React.FC = () => {
               required
               fullWidth
               name="password"
+              label={t('login.password')}
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+              InputLabelProps={{
+                required: false
+              }}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">

@@ -1,8 +1,7 @@
 import { createBrowserRouter, redirect } from 'react-router-dom';
 import Login from '../pages/Login';
 import Home from '../pages/Home';
-
-const isAuthenticated = () => localStorage.getItem('isAuthenticated') === 'true';
+import { isAuthenticated } from '../utils/auth';
 
 const router = createBrowserRouter([
   {
