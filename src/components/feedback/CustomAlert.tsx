@@ -23,7 +23,7 @@ const CustomAlert: React.FC<CustomAlertProps> = ({ open, message, severity, onCl
         sx={{ 
           width: '100%',
           '&.MuiAlert-standardSuccess': {
-            backgroundColor: '#15E923', // 比默认的浅绿色深一点点
+            backgroundColor: '#0EF644', // 比默认的浅绿色深一点点
             color: '#fff'
           },
           '&.MuiAlert-standardError': {
