@@ -2,15 +2,16 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Box, Drawer, AppBar, Toolbar, Typography, Button, List, ListItem, ListItemIcon, 
-  ListItemText, IconButton, Divider, Paper, Table, TableBody, 
-  TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+  ListItemText, IconButton, Divider } from '@mui/material';
 import { CloudUpload as CloudUploadIcon, Logout as LogoutIcon, Storage as StorageIcon,
   Add as AddIcon, Delete as DeleteIcon, DriveFileMove as DriveFileMoveIcon,
   DarkMode as DarkModeIcon, LightMode as LightModeIcon, Cloud as CloudIcon,
   CreateNewFolder as CreateNewFolderIcon, Download as DownloadIcon } from '@mui/icons-material';
 import { LanguageSwitch, CustomTooltip, CustomAlert } from '@/components';
+import { FileView } from '@/components/data-display';
 import { useTheme } from '@/themes/ThemeContext';
 import { logout } from '@/utils/auth';
+import { FileItem, ViewMode } from '@/types/file';
 
 const DRAWER_WIDTH = 240;
 
@@ -71,7 +72,7 @@ const styles = {
   fileActions: {
     display: 'flex',
     gap: 1,
-    marginBottom: 2,
+    marginBottom: 0.5,
   },
   addConnectionButton: {
     margin: '16px',
@@ -114,31 +115,121 @@ const STORAGE_SERVICES = [
 ];
 
 // 模拟的文件数据
-const MOCK_FILES = [
-  { id: 1, name: 'example1.jpg', size: '2.4 MB', modified: '2023-12-26 14:30' },
-  { id: 2, name: 'document.pdf', size: '1.1 MB', modified: '2023-12-25 09:15' },
+const MOCK_FILES: FileItem[] = [
+  { 
+    id: 1, 
+    name: 'example1.jpg', 
+    size: '2.4 MB', 
+    modified: '2023-12-26 14:30',
+    type: 'file',
+    mimeType: 'image/jpeg',
+    thumbnailUrl: '/placeholder.png'
+  },
+  { 
+    id: 2, 
+    name: 'document.pdf', 
+    size: '1.1 MB', 
+    modified: '2023-12-25 09:15',
+    type: 'file',
+    mimeType: 'application/pdf'
+  },
+  {
+    id: 3,
+    name: 'Images',
+    size: '0 KB',
+    modified: '2023-12-24 10:00',
+    type: 'folder'
+  },
+  {
+    id: 4,
+    name: 'report2023.docx',
+    size: '3.2 MB',
+    modified: '2023-12-23 16:45',
+    type: 'file',
+    mimeType: 'application/msword'
+  },
+  {
+    id: 5,
+    name: 'project-files',
+    size: '1.5 GB',
+    modified: '2023-12-22 11:20',
+    type: 'folder'
+  }
 ];
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { mode, toggleTheme } = useTheme();
+  
+  // 视图状态
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [selectedFiles, setSelectedFiles] = useState<Set<number | string>>(new Set());
   const [alert, setAlert] = useState<{
     show: boolean;
     message: string;
     severity: 'success' | 'error';
   }>({ show: false, message: '', severity: 'success' });
 
+  // 文件操作处理函数
+  const handleDelete = (file: FileItem) => {
+    setAlert({
+      show: true,
+      message: t('home.deleteSuccess', { name: file.name }),
+      severity: 'success'
+    });
+  };
+
+  const handleMove = (file: FileItem) => {
+    setAlert({
+      show: true,
+      message: t('home.moveSuccess', { name: file.name }),
+      severity: 'success'
+    });
+  };
+
+  const handleDownload = (file: FileItem) => {
+    setAlert({
+      show: true,
+      message: t('home.downloadStarted', { name: file.name }),
+      severity: 'success'
+    });
+  };
+
+  const handlePreview = (file: FileItem) => {
+    if (file.type === 'folder') {
+      // 处理文件夹点击
+      console.log('Open folder:', file.name);
+    } else {
+      // 处理文件预览
+      console.log('Preview file:', file.name);
+    }
+  };
+
+  const handleSelect = (file: FileItem) => {
+    console.log('Selected file:', file.name);
+  };
+
+  const handleToggleSelect = (fileId: number | string) => {
+    setSelectedFiles(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(fileId)) {
+        newSet.delete(fileId);
+      } else {
+        newSet.add(fileId);
+      }
+      return newSet;
+    });
+  };
+
   const handleLogout = () => {
     try {
-      logout(); // 使用新的logout函数
-      
+      logout();
       setAlert({
         show: true,
         message: t('logout.success'),
         severity: 'success'
       });
-      
       setTimeout(() => {
         navigate('/login');
       }, 500);
@@ -240,6 +331,7 @@ const Home: React.FC = () => {
             variant="contained"
             startIcon={<DownloadIcon />}
             sx={styles.actionButton}
+            disabled={selectedFiles.size === 0}
           >
             {t('home.download')}
           </Button>
@@ -247,6 +339,7 @@ const Home: React.FC = () => {
             variant="contained"
             startIcon={<DeleteIcon />}
             sx={styles.deleteButton}
+            disabled={selectedFiles.size === 0}
           >
             {t('common.delete')}
           </Button>
@@ -254,42 +347,24 @@ const Home: React.FC = () => {
             variant="contained"
             startIcon={<DriveFileMoveIcon />}
             sx={styles.actionButton}
+            disabled={selectedFiles.size === 0}
           >
             {t('home.move')}
           </Button>
         </Box>
 
-        <TableContainer component={Paper}>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>{t('home.fileName')}</TableCell>
-                <TableCell align="right">{t('home.fileSize')}</TableCell>
-                <TableCell align="right">{t('home.lastModified')}</TableCell>
-                <TableCell align="right">{t('home.actions')}</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {MOCK_FILES.map((file) => (
-                <TableRow key={file.id}>
-                  <TableCell component="th" scope="row">
-                    {file.name}
-                  </TableCell>
-                  <TableCell align="right">{file.size}</TableCell>
-                  <TableCell align="right">{file.modified}</TableCell>
-                  <TableCell align="right">
-                    <IconButton size="small">
-                      <DeleteIcon />
-                    </IconButton>
-                    <IconButton size="small">
-                      <DriveFileMoveIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <FileView
+          files={MOCK_FILES}
+          viewMode={viewMode}
+          selectedFiles={selectedFiles}
+          onViewModeChange={setViewMode}
+          onToggleSelect={handleToggleSelect}
+          onDelete={handleDelete}
+          onMove={handleMove}
+          onDownload={handleDownload}
+          onSelect={handleSelect}
+          onPreview={handlePreview}
+        />
       </Box>
 
       <CustomAlert 
