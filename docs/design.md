@@ -77,36 +77,26 @@
   - 前端：记录文件操作日志（上传/删除）
   - 后端：记录访问日志（IP、时间、操作类型）和错误日志
 - **数据存储方案**：
-  - **开发环境**：
-    - 使用 **SQLite** 作为本地开发数据库
-    - 存储内容包括：
-      - 存储连接信息表 (storage_connections)
-      - 访问日志表 (access_logs)
-    - 数据库文件位置：`./data/cloudpic.db`
-
-  - **生产环境**：
-    - 使用 **Vercel的数据库服务**
-    - 保持与开发环境相同的数据结构
-    - 通过环境变量判断切换数据库连接
+  - **开发/生产环境统一设计**：
+    - 开发环境：使用 SQLite 作为本地数据库
+    - 生产环境：使用 Vercel Postgres
+    - 通过环境变量自动切换数据库连接
 
   - **数据表设计**：
-    - 存储连接信息表 (storage_connections)
-      - id: 连接唯一标识
-      - name: 连接名称
-      - type: 存储类型(B2/R2)
-      - config: 连接配置(JSON)
-      - created_at: 创建时间
-      - custom_domain: 自定义域名
-      - domain_enabled: 是否启用自定义域名
-      - cdn_provider: CDN提供商
-      - https_enabled: 是否启用HTTPS
-      - anti_leech: 是否启用防盗链
+    1. 存储连接信息表 (storage_connections)
+       - id: 连接唯一标识
+       - name: 连接名称
+       - type: 存储类型(B2/R2)
+       - config: 连接配置(JSON)
+       - created_at: 创建时间
+       - custom_domain: 自定义域名配置(JSON，包含域名、CDN配置等)
 
-    - 访问日志表 (access_logs)
-      - id: 日志ID
-      - ip: 访问IP
-      - action: 操作类型
-      - timestamp: 操作时间
+    2. 访问日志表 (access_logs)
+       - id: 日志ID
+       - ip: 访问IP
+       - action: 操作类型（如：login_attempt/login_success/file_upload等）
+       - details: 详细信息(JSON，包含失败次数、锁定状态等)
+       - timestamp: 操作时间
 
     - 刷新令牌表 (refresh_tokens)
       - id: token唯一标识
@@ -312,28 +302,27 @@ interface StorageConnection {
 
 ### 认证方案
 
-项目使用简单的密码认证方式：
-
 1. **密码配置**：
    - 通过环境变量 `ACCESS_PASSWORD` 配置访问密码
-   - 密码要求：至少8位，必须包含数字和字母
+   - 密码建议：
+     - 至少8位
+     - 必须包含数字和字母
+     - 避免使用简单密码
+   - 系统启动时会检查密码复杂度并输出警告日志
 
 2. **认证流程**：
    - 用户输入密码
-   - 与环境变量中的密码进行比对
-   - 验证通过后生成带过期时间的token（24小时有效）
-   - token存储在localStorage中
+   - 后端验证并生成：
+     - JWT token（1小时有效）
+     - refresh token（7天有效）
+   - token存储在secure storage中
 
-3. **登录状态管理**：
-   - token包含时间戳和过期时间
-   - 使用Base64编码存储token信息
-   - 定期检查token有效性
-   - token过期自动跳转登录页
-
-4. **安全考虑**：
-   - 密码通过环境变量配置，不会暴露在前端代码中
-   - token具有过期机制，降低安全风险
-   - 可以随时通过更改环境变量修改访问密码
+3. **安全措施**：
+   - 登录失败计数（服务端记录）
+   - 5次失败后锁定15分钟
+   - 锁定期间完全禁止登录尝试
+   - 锁定信息记录在访问日志中
+   - 自动刷新token机制
 
 ### 交互流程
 
