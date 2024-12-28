@@ -8,151 +8,84 @@
 
 ### 总体架构
 
-项目采用前后端分离的架构，前端负责用户界面和交互，后端负责业务逻辑和数据处理。架构设计强调扩展性和低耦合性，特别是在云存储服务的认证连接部分。
+项目基于 Vercel 平台构建，采用前后端分离的 Serverless 架构：
 
-### 前端架构
+1. **前端技术栈**：
+   - 构建：Vite ^6.0.5
+   - 框架：React ^18.2.0 + TypeScript ~5.6.2
+   - UI：Material-UI ^5.15.11
+   - 状态：React Context
+   - 路由：React Router ^6.20.0
+   - 网络：Axios ^1.7.9
+   - 国际化：i18next ^24.2.0
 
-- **构建工具**：使用 **Vite ^6.0.5** 作为开发和构建工具。
-- **框架**：使用 **React ^18.2.0**，因其组件化开发、生态丰富且性能优越。
-- **UI框架**：使用 **Material-UI ^5.15.11** 构建现代化UI界面。
-- **路由管理**：使用 **React Router ^6.20.0** 管理页面路由。
-- **HTTP客户端**：使用 **Axios ^1.7.9** 处理API请求。
-- **状态管理**：使用 **React Context** 进行全局状态管理。
-- **多语言支持**：使用 **i18next ^24.2.0** 和 **react-i18next ^15.2.0** 实现多语言支持。
-- **类型检查**：使用 **TypeScript ~5.6.2** 进行静态类型检查。
-- **组件设计**：
-  - **容器组件**：负责数据获取和逻辑处理。
-  - **展示组件**：负责界面渲染和用户交互。
-  - **组件分类**：
-    - `common`: 通用组件
-    - `feedback`: 反馈类组件
-    - `layout`: 布局组件
-    - `data-display`: 数据展示组件
-- **主题模式**：
-  - 支持白天和黑夜两种主题模式，用户可以在任意页面切换。
-  - 使用Material-UI的ThemeProvider实现主题切换。
-  - 主题偏好保存在localStorage中。
+2. **组件设计**：
+   - 容器组件：数据获取和逻辑处理
+   - 展示组件：界面渲染和交互
+   - 主题：支持亮暗模式切换，基于 MUI ThemeProvider
 
-### 后端架构
+### 后端架构 (Serverless)
 
-- **云存储服务SDK**：
-  - **Backblaze B2**: 使用 `backblaze-b2 ^1.7.0`
-  - **Cloudflare R2**: 使用 `@aws-sdk/client-s3 ^3.717.0`（R2兼容S3 API）
-- **图片处理**：使用 `sharp ^0.33.5` 处理图片压缩和缩略图生成
+1. **API 设计**：
+   - 基于 Vercel Serverless Functions
+   - 通过 `/api/*` 路由自动映射
+   - 支持单文件多路由模式
 
-- **框架**：使用 **Node.js ^18.18.1 + Express ^4.18.2** 构建RESTful API。
-- **认证机制**：
-  - 通过环境变量 `ACCESS_PASSWORD` 和 `JWT_SECRET` 配置密码和JWT密钥
-  - 登录认证流程：
-    - 密码验证通过后生成访问令牌（JWT token）和刷新令牌（refresh token）
-    - 访问令牌用于API请求认证，有效期1小时
-    - 刷新令牌用于自动更新访问令牌，有效期7天
-    - 认证信息存储在secure storage中
-  - Token 管理：
-    - 访问令牌：
-      - 包含认证信息，用于API请求
-      - 自动添加到请求头中
-      - 过期前5分钟自动刷新
-    - 刷新令牌：
-      - 存储在数据库中便于管理
-      - 支持撤销以实现登出功能
-      - 过期后需要重新登录
-    - 自动刷新机制：
-      - 前端定期检查token状态
-      - 无感知地自动更新token
-      - 刷新失败时跳转登录页
-  - API 认证：
-    - CloudPic API 请求需要携带访问令牌
-    - 云存储服务 API 使用各自的认证方式
-  - 安全措施：
-    - 密码传输前加密
-    - 定期检查和更新token
-    - API 请求自动携带token
-    - 无效token跳转登录页
-- **文件处理限制**：
-  - 文件大小限制：100MB
-  - 支持文件类型：图片（JPEG、PNG、GIF）
-  - 使用 sharp 库处理图片压缩和缩略图生成
-- **日志记录**：
-  - 前端：记录文件操作日志（上传/删除）
-  - 后端：记录访问日志（IP、时间、操作类型）和错误日志
-- **数据存储方案**：
-  - **开发/生产环境统一设计**：
-    - 开发环境：使用 SQLite 作为本地数据库
-    - 生产环境：使用 Vercel Postgres
-    - 通过环境变量自动切换数据库连接
+2. **数据存储**：
+   - 配置存储：Vercel KV (Redis)
+   - 结构化数据：Vercel Postgres
+   - 本地开发：自动切换到 SQLite
 
-  - **数据表设计**：
-    1. 存储连接信息表 (storage_connections)
-       - id: 连接唯一标识
-       - name: 连接名称
-       - type: 存储类型(B2/R2)
-       - config: 连接配置(JSON)
-       - created_at: 创建时间
-       - custom_domain: 自定义域名配置(JSON，包含域名、CDN配置等)
+3. **核心功能**：
+   - 认证：基于 JWT 的无状态认证
+   - 存储：多云存储服务统一管理
+   - 文件：上传、预览、删除等操作
+   - 图片：基于 sharp 的图片处理
 
-    2. 访问日志表 (access_logs)
-       - id: 日志ID
-       - ip: 访问IP
-       - action: 操作类型（如：login_attempt/login_success/file_upload等）
-       - details: 详细信息(JSON，包含失败次数、锁定状态等)
-       - timestamp: 操作时间
-
-    - 刷新令牌表 (refresh_tokens)
-      - id: token唯一标识
-      - token: refresh token值
-      - created_at: 创建时间
-      - expires_at: 过期时间（7天）
-      - last_used_at: 最后使用时间
-      - is_revoked: 是否已撤销（用于登出时撤销）
-
-- **API设计**：
-  - **用户认证API**：处理云服务登录请求。
-  - **存储服务API**：管理云存储服务的连接、文件操作等。
-  - **文件操作API**：实现文件的上传、删除、预览等功能。
+4. **环境配置**：
+   ```
+   # 开发环境
+   DATABASE_URL=file:./data/cloudpic.db
+   
+   # 生产环境
+   POSTGRES_URL=xxx
+   VERCEL_KV_URL=xxx
+   ACCESS_PASSWORD=xxx
+   ```
 
 ### 云存储服务扩展性设计
 
 1. **统一接口设计**：
+   ```typescript
+   interface IStorageService {
+     // 核心方法
+     connect(): Promise<void>;                    // 连接并认证
+     uploadFile(file: File): Promise<string>;     // 上传文件
+     deleteFile(path: string): Promise<void>;     // 删除文件
+     listFiles(prefix?: string): Promise<File[]>; // 列出文件
+     getFileUrl(path: string): string;           // 获取访问URL
+   }
+   ```
 
-   - 定义 `IStorageService` 接口，包含以下核心方法：
-     - `connect`: 连接并认证存储服务
-     - `uploadFile`: 上传文件
-     - `deleteFile`: 删除文件
-     - `listFiles`: 列出文件
-     - `getFileUrl`: 获取文件访问URL
-     - `createDirectory`: 创建目录
+2. **工厂模式实现**：
+   - 通过工厂创建具体存储服务实例
+   - 支持 B2、R2、S3 等多种存储服务
+   - 统一的错误处理和重试机制
+   - 可扩展的服务注册机制
 
-2. **存储服务实现**：
-   a. **Backblaze B2实现**
-
-   - 使用官方SDK `backblaze-b2`
-   - 需要自定义TypeScript类型定义
-   - 实现文件上传、删除、列表等操作
-
-   b. **Cloudflare R2实现**
-
-   - 使用 `@aws-sdk/client-s3` SDK（R2兼容S3 API）
-   - 配置R2专用endpoint
-   - 实现标准S3操作接口
-
-   c. **通用S3兼容服务实现**
-
-   - 同样使用 `@aws-sdk/client-s3` SDK
-   - 支持自定义endpoint和region
-   - 添加特殊配置支持（如 `forcePathStyle`）
-
-3. **服务工厂模式**：
-
-   - 使用工厂模式创建存储服务实例
-   - 支持动态选择存储服务类型
-   - 统一配置管理
-
-4. **认证连接模块**：
-
-   - 将认证逻辑封装在独立模块中
-   - 支持不同服务的认证方式
-   - 通过数据库存储认证信息
+3. **存储服务配置**：
+   ```typescript
+   interface StorageConfig {
+     type: 'b2' | 'r2' | 's3';     // 服务类型
+     endpoint?: string;             // 服务端点
+     credentials: {                 // 认证信息
+       accessKey: string;
+       secretKey: string;
+     };
+     region?: string;              // 可选区域
+     customDomain?: string;        // 自定义域名
+   }
+   ```
 
 ### 自定义域名功能设计
 
@@ -268,7 +201,22 @@ interface StorageConnection {
 
 ```
 /cloudpic
-├── /docs               # 项目文档
+├── /api               # 无服务器函数 
+│   ├── auth.ts          # 认证相关 (登录/登出/验证)
+│   ├── providers.ts     # 云服务管理 (列表/连接/配置)
+│   ├── files.ts         # 文件操作 (上传/删除/移动/预览)
+│   ├── images.ts        # 图片处理 (压缩/缩略图/格式转换)
+│   └── /services        # 服务层实现
+│       ├── /storage       # 存储服务工厂
+│       │   ├── types.ts     # 接口定义
+│       │   ├── factory.ts   # 服务工厂实现
+│       │   ├── b2.ts        # B2存储实现
+│       │   ├── r2.ts        # R2存储实现
+│       │   └── s3.ts        # S3兼容存储实现
+│       └── /image         # 图片处理服务
+│           ├── types.ts     # 接口定义
+│           └── sharp.ts     # Sharp实现
+├── /docs              # 项目文档
 ├── /public            # 静态文件
 ├── /src               # 源代码
 │   ├── /components    # 组件
@@ -302,27 +250,42 @@ interface StorageConnection {
 
 ### 认证方案
 
-1. **密码配置**：
-   - 通过环境变量 `ACCESS_PASSWORD` 配置访问密码
-   - 密码建议：
-     - 至少8位
-     - 必须包含数字和字母
-     - 避免使用简单密码
-   - 系统启动时会检查密码复杂度并输出警告日志
+1. **JWT认证流程**：
+   - 用户输入访问密码
+   - 验证通过后生成 JWT token 和 refresh token
+   - token 存储在 secure storage
+   - 请求时自动携带 token
+   - token 过期自动刷新
 
-2. **认证流程**：
-   - 用户输入密码
-   - 后端验证并生成：
-     - JWT token（1小时有效）
-     - refresh token（7天有效）
-   - token存储在secure storage中
+2. **配置要求**：
+   - 环境变量 `ACCESS_PASSWORD` 设置访问密码
+   - JWT 密钥自动生成或通过环境变量配置
+   - token 有效期默认 1 小时
+   - refresh token 有效期 7 天
 
-3. **安全措施**：
-   - 登录失败计数（服务端记录）
-   - 5次失败后锁定15分钟
-   - 锁定期间完全禁止登录尝试
-   - 锁定信息记录在访问日志中
-   - 自动刷新token机制
+3. **请求认证**：
+   ```typescript
+   // API 请求拦截
+   axios.interceptors.request.use(config => {
+     const token = localStorage.getItem('token');
+     if (token) {
+       config.headers.Authorization = `Bearer ${token}`;
+     }
+     return config;
+   });
+
+   // 响应拦截（处理 token 过期）
+   axios.interceptors.response.use(
+     response => response,
+     async error => {
+       if (error.response?.status === 401) {
+         // 尝试刷新 token
+         return refreshTokenAndRetry(error.config);
+       }
+       return Promise.reject(error);
+     }
+   );
+   ```
 
 ### 交互流程
 
@@ -466,4 +429,4 @@ interface StorageConnection {
 
 1. **代码注释**：确保代码中有充分的注释，便于理解。
 2. **API文档**：使用真实有效的API文档，确保调用的库和方法正确。
-3. **测试**：在本地开发过程中，无法先将项目部署到vercle中，所以考虑到本地测试的情况，先模拟，确保功能正常。 
+3. **测试**：在本地开发过程中，无法先将项目部署到vercle中，所以考虑到本地测试的情况，先模拟，确保功能正常。
