@@ -32,8 +32,8 @@
    - 支持单文件多路由模式
 
 2. **数据存储**：
-   - 配置存储：Vercel KV (Redis)
-   - 结构化数据：Vercel Postgres
+   - Vercel KV (Redis)：认证tokens
+   - Vercel Postgres：存储服务配置和域名设置
    - 本地开发：自动切换到 SQLite
 
 3. **核心功能**：
@@ -58,12 +58,26 @@
 1. **统一接口设计**：
    ```typescript
    interface IStorageService {
-     // 核心方法
-     connect(): Promise<void>;                    // 连接并认证
-     uploadFile(file: File): Promise<string>;     // 上传文件
-     deleteFile(path: string): Promise<void>;     // 删除文件
-     listFiles(prefix?: string): Promise<File[]>; // 列出文件
-     getFileUrl(path: string): string;           // 获取访问URL
+     // 连接认证
+     connect(): Promise<void>;                    
+     
+     // 文件操作
+     uploadFile(file: File, path: string): Promise<string>;  // 指定路径上传
+     deleteFile(path: string): Promise<void>;     
+     listFiles(prefix?: string): Promise<File[]>; 
+     getFileUrl(path: string): string;           
+     
+     // 文件夹操作
+     createFolder(path: string): Promise<void>;   // 创建文件夹
+     deleteFolder(path: string): Promise<void>;   // 删除文件夹(含内容)
+     
+     // 通用操作
+     move(from: string, to: string): Promise<void>;    // 移动文件/文件夹
+     copy(from: string, to: string): Promise<void>;    // 复制文件/文件夹
+     exists(path: string): Promise<boolean>;           // 检查路径是否存在
+     
+     // 可选功能
+     generateUploadUrl?(path: string): Promise<string>; // 生成直传URL
    }
    ```
 
@@ -159,7 +173,7 @@ interface StorageConnection {
    ```
    在CloudPic项目中需要：
    1. 用户添加B2存储桶配置
-   2. 提供Cloudflare Workers代码和配置指南
+   2. 提供Cloudflare Workers代码和配置指南，可考虑在docs目录下存放这些教程md文档，可通过路由配置调整显示文档。同时提供一个根据填入变量配置生成Cloudflare Workers代码的工具，方便用户配置。
    3. 生成域名验证记录
    
    在Cloudflare中需要：
