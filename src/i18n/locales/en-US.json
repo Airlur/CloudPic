@@ -9,8 +9,26 @@
     "save": "Save",
     "edit": "Edit",
     "loading": "Loading...",
-    "darkMode": "Switch to Dark Mode",
-    "lightMode": "Switch to Light Mode"
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode"
+  },
+  "response": {
+    "success": {
+      "login": "Login successful",
+      "logout": "Logout successful",
+      "tokenRefresh": "Token refreshed",
+      "verify": "Verification successful"
+    },
+    "error": {
+      "login": "Login failed",
+      "logout": "Logout failed",
+      "invalidPassword": "Invalid password",
+      "noToken": "No token provided",
+      "tokenExpired": "Token expired",
+      "invalidToken": "Invalid token",
+      "pleaseLogin": "Please login again",
+      "methodNotAllowed": "Method not allowed"
+    }
   },
   "login": {
     "title": "Login",
@@ -18,10 +36,12 @@
     "wrongPassword": "Wrong password",
     "enterPassword": "Please enter password",
     "loginSuccess": "Login successful",
-    "loginFailed": "Login failed"
+    "loginFailed": "Login failed",
+    "serverError": "Server error",
+    "invalidPassword": "Invalid password"
   },
   "logout": {
-    "success": "Logged out successfully",
+    "success": "Logged out",
     "failed": "Logout failed"
   },
   "home": {
@@ -39,6 +59,11 @@
     "download": "Download",
     "root": "Home",
     "selectService": "Please select a storage service",
-    "upDirectory": "Up to parent"
+    "upDirectory": "Up Directory",
+    "logoutSuccess": "Logout successful",
+    "logoutFailed": "Logout failed",
+    "moveSuccess": "{{name}} moved successfully",
+    "downloadStarted": "Started downloading {{name}}",
+    "deleteSuccess": "{{name}} deleted successfully"
   }
 } 

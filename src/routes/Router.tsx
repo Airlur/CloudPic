@@ -1,13 +1,14 @@
 import { createBrowserRouter, redirect } from 'react-router-dom';
 import Login from '../pages/Login';
 import Home from '../pages/Home';
-import { isAuthenticated } from '../utils/auth';
+import { isAuthenticated } from '../services/auth/auth';
 
 const router = createBrowserRouter([
   {
     path: '/',
-    loader: () => {
-      if (!isAuthenticated()) {
+    loader: async () => {
+      const authenticated = await isAuthenticated();
+      if (!authenticated) {
         return redirect('/login');
       }
       return null;
@@ -16,8 +17,9 @@ const router = createBrowserRouter([
   },
   {
     path: '/login',
-    loader: () => {
-      if (isAuthenticated()) {
+    loader: async () => {
+      const authenticated = await isAuthenticated();
+      if (authenticated) {
         return redirect('/');
       }
       return null;

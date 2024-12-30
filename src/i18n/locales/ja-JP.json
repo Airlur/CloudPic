@@ -9,36 +9,61 @@
     "save": "保存",
     "edit": "編集",
     "loading": "読み込み中...",
-    "darkMode": "ダークモードに切り替え",
-    "lightMode": "ライトモードに切り替え"
+    "darkMode": "ダークモード",
+    "lightMode": "ライトモード"
+  },
+  "response": {
+    "success": {
+      "login": "ログインに成功しました",
+      "logout": "ログアウトしました",
+      "tokenRefresh": "トークンを更新しました",
+      "verify": "認証に成功しました"
+    },
+    "error": {
+      "login": "ログインに失敗しました",
+      "logout": "ログアウトに失敗しました",
+      "invalidPassword": "パスワードが正しくありません",
+      "noToken": "トークンが提供されていません",
+      "tokenExpired": "トークンの有効期限が切れました",
+      "invalidToken": "無効なトークンです",
+      "pleaseLogin": "再度ログインしてください",
+      "methodNotAllowed": "許可されていないメソッドです"
+    }
   },
   "login": {
     "title": "ログイン",
     "password": "パスワード",
     "wrongPassword": "パスワードが間違っています",
     "enterPassword": "パスワードを入力してください",
-    "loginSuccess": "ログインしました",
-    "loginFailed": "ログインに失敗しました"
+    "loginSuccess": "ログインに成功しました",
+    "loginFailed": "ログインに失敗しました",
+    "serverError": "サーバーエラーが発生しました",
+    "invalidPassword": "パスワードが正しくありません"
   },
   "logout": {
     "success": "ログアウトしました",
     "failed": "ログアウトに失敗しました"
   },
   "home": {
-    "title": "クラウドピック",
-    "welcome": "クラウドピックへようこそ",
+    "title": "CloudPic",
+    "welcome": "CloudPicへようこそ",
     "uploadFile": "ファイルをアップロード",
     "addConnection": "接続を追加",
     "move": "移動",
     "fileName": "ファイル名",
     "fileSize": "サイズ",
-    "lastModified": "更新日時",
+    "lastModified": "最終更新",
     "actions": "操作",
     "noFiles": "ファイルがありません",
     "newFolder": "新規フォルダ",
     "download": "ダウンロード",
     "root": "ホーム",
     "selectService": "ストレージサービスを選択してください",
-    "upDirectory": "親フォルダへ"
+    "upDirectory": "上の階層へ",
+    "logoutSuccess": "ログアウトしました",
+    "logoutFailed": "ログアウトに失敗しました",
+    "moveSuccess": "{{name}}を移動しました",
+    "downloadStarted": "{{name}}のダウンロードを開始しました",
+    "deleteSuccess": "{{name}}を削除しました"
   }
 } 

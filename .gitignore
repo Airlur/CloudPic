@@ -45,3 +45,6 @@ lerna-debug.log*
 .cache
 .temp
 .vercel
+
+# Local database
+/data/*.db

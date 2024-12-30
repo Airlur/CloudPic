@@ -8,7 +8,7 @@ import CloudIcon from '@mui/icons-material/Cloud';
 import { DarkMode as DarkModeIcon, LightMode as LightModeIcon } from '@mui/icons-material';
 import { LanguageSwitch, CustomTooltip, CustomAlert } from '@/components';
 import { useTheme as useCustomTheme } from '@/themes/ThemeContext';
-import { login } from '@/utils/auth';
+import { login } from '@/services/auth/auth';
 
 // 样式定义
 const styles = {
@@ -73,23 +73,31 @@ const Login: React.FC = () => {
     severity: 'success' | 'error';
   }>({ show: false, message: '', severity: 'success' });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = login(password);
     
-    if (success) {
+    try {
+      const response = await login(password);
+      if (response.code === 200) {
+        setAlert({
+          show: true,
+          message: t(response.message),
+          severity: 'success'
+        });
+        setTimeout(() => {
+          navigate('/');
+        }, 500);
+      } else {
+        setAlert({
+          show: true,
+          message: t(response.message),
+          severity: 'error'
+        });
+      }
+    } catch (error) {
       setAlert({
         show: true,
-        message: t('login.loginSuccess'),
-        severity: 'success'
-      });
-      setTimeout(() => {
-        navigate('/');
-      }, 500);
-    } else {
-      setAlert({
-        show: true,
-        message: t('login.loginFailed'),
+        message: t('response.error.login'),
         severity: 'error'
       });
     }

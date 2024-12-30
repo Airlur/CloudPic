@@ -10,7 +10,7 @@ import { CloudUpload as CloudUploadIcon, Logout as LogoutIcon, Storage as Storag
 import { LanguageSwitch, CustomTooltip, CustomAlert } from '@/components';
 import { FileView } from '@/components/data-display';
 import { useTheme } from '@/themes/ThemeContext';
-import { logout } from '@/utils/auth';
+import { logout } from '@/services/auth/auth';
 import { FileItem, ViewMode } from '@/types/file';
 
 const DRAWER_WIDTH = 240;
@@ -311,21 +311,29 @@ const Home: React.FC = () => {
     });
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     try {
-      logout();
-      setAlert({
-        show: true,
-        message: t('logout.success'),
-        severity: 'success'
-      });
-      setTimeout(() => {
-        navigate('/login');
-      }, 500);
+      const response = await logout();
+      if (response.code === 200) {
+        setAlert({
+          show: true,
+          message: t(response.message),
+          severity: 'success'
+        });
+        setTimeout(() => {
+          navigate('/login');
+        }, 500);
+      } else {
+        setAlert({
+          show: true,
+          message: t(response.message),
+          severity: 'error'
+        });
+      }
     } catch (error) {
       setAlert({
         show: true,
-        message: t('logout.failed'),
+        message: t('response.error.logout'),
         severity: 'error'
       });
     }
