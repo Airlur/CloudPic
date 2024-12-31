@@ -3,6 +3,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { config } from 'dotenv';
 import authHandler from '../api/auth/index';
+import storageHandler from '../api/services/storage/index';
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { IncomingMessage, ServerResponse } from 'http';
 
@@ -68,6 +69,13 @@ const adaptHandler = (handler: (req: VercelRequest, res: VercelResponse) => Prom
 app.post('/api/auth', adaptHandler(authHandler));
 app.get('/api/auth/verify', adaptHandler(authHandler));
 app.post('/api/auth/logout', adaptHandler(authHandler));
+
+// 存储服务路由
+app.post('/api/storage/test', adaptHandler(storageHandler));
+app.post('/api/storage', adaptHandler(storageHandler));
+app.get('/api/storage', adaptHandler(storageHandler));
+app.put('/api/storage/:id', adaptHandler(storageHandler));
+app.delete('/api/storage/:id', adaptHandler(storageHandler));
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
