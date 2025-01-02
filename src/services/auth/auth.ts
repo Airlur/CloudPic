@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { request } from '@/utils/request';
 import type { 
   BaseResponse, 
   LoginResponseData,
@@ -7,18 +7,9 @@ import type {
 } from '@/types/api';
 import { ResponseCode } from '@/constants/httpCode';
 
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? '/api' 
-  : 'http://localhost:3000/api';
-
-// 登录
 export const login = async (password: string): Promise<BaseResponse<LoginResponseData>> => {
   try {
-    const { data } = await axios.post<BaseResponse<LoginResponseData>>(
-      `${API_BASE_URL}/auth`, 
-      { password }, 
-      { withCredentials: true }
-    );
+    const { data } = await request.post<BaseResponse<LoginResponseData>>('/auth', { password });
     return data;
   } catch (error) {
     console.error('登录出错:', error);
@@ -29,27 +20,18 @@ export const login = async (password: string): Promise<BaseResponse<LoginRespons
   }
 };
 
-// 验证登录状态
-export const isAuthenticated = async (): Promise<boolean> => {
+export const verify = async (): Promise<boolean> => {
   try {
-    const { data } = await axios.get<BaseResponse<VerifyResponseData>>(
-      `${API_BASE_URL}/auth/verify`,
-      { withCredentials: true }
-    );
+    const { data } = await request.get<BaseResponse<VerifyResponseData>>('/auth/verify');
     return data.code === ResponseCode.SUCCESS;
-  } catch (error) {
+  } catch {
     return false;
   }
 };
 
-// 登出
 export const logout = async (): Promise<BaseResponse<LogoutResponseData>> => {
   try {
-    const { data } = await axios.post<BaseResponse<LogoutResponseData>>(
-      `${API_BASE_URL}/auth/logout`, 
-      {}, 
-      { withCredentials: true }
-    );
+    const { data } = await request.post<BaseResponse<LogoutResponseData>>('/auth/logout');
     return data;
   } catch (error) {
     return {

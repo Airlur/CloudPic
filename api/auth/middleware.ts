@@ -7,8 +7,10 @@ export interface AuthenticatedRequest extends VercelRequest {
   user?: { authorized: boolean };
 }
 
-export function withAuth(handler: (req: AuthenticatedRequest, res: VercelResponse) => Promise<void | VercelResponse>) {
-  return async (req: VercelRequest, res: VercelResponse) => {
+export function withAuth(
+  handler: (req: AuthenticatedRequest, res: VercelResponse) => Promise<VercelResponse>
+) {
+  return async (req: VercelRequest, res: VercelResponse): Promise<VercelResponse> => {
     try {
       const token = req.cookies.token;
       

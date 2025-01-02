@@ -17,7 +17,11 @@
       "login": "ログインに成功しました",
       "logout": "ログアウトしました",
       "tokenRefresh": "トークンを更新しました",
-      "verify": "認証に成功しました"
+      "verify": "認証に成功しました",
+      "connectionTest": "ストレージバケット接続テスト成功",
+      "connectionCreated": "ストレージバケット接続が作成されました",
+      "connectionsRetrieved": "ストレージバケット接続一覧を取得しました",
+      "connectionDeleted": "ストレージバケット接続が削除されました"
     },
     "error": {
       "login": "ログインに失敗しました",
@@ -27,7 +31,17 @@
       "tokenExpired": "トークンの有効期限が切れました",
       "invalidToken": "無効なトークンです",
       "pleaseLogin": "再度ログインしてください",
-      "methodNotAllowed": "許可されていないメソッドです"
+      "methodNotAllowed": "許可されていないメソッドです",
+      "connectionTestFailed": "ストレージバケット接続テストに失敗しました",
+      "failedToRetrieveConnections": "ストレージ接続一覧の取得に失敗しました",
+      "failedToCreateConnection": "ストレージ接続の作成に失敗しました",
+      "failedToUpdateConnection": "ストレージ接続の更新に失敗しました",
+      "failedToDeleteConnection": "ストレージ接続の削除に失敗しました",
+      "connectionCreationFailed": "ストレージバケット接続の作成に失敗しました",
+      "duplicateConnection": "ストレージバケット接続が既に存在します",
+      "bucketExists": "ストレージバケット {bucket} は既に {type} サービスで接続されています（接続名：{existingName}）",
+      "connectionNotFound": "指定されたストレージバケット接続が見つかりません",
+      "internalError": "サーバー内部エラー"
     }
   },
   "login": {

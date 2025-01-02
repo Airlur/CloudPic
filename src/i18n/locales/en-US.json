@@ -17,7 +17,11 @@
       "login": "Login successful",
       "logout": "Logout successful",
       "tokenRefresh": "Token refreshed",
-      "verify": "Verification successful"
+      "verify": "Verification successful",
+      "connectionTest": "Storage bucket connection test successful",
+      "connectionCreated": "Storage bucket connection created",
+      "connectionsRetrieved": "Storage bucket connections retrieved",
+      "connectionDeleted": "Storage bucket connection deleted"
     },
     "error": {
       "login": "Login failed",
@@ -27,7 +31,17 @@
       "tokenExpired": "Token expired",
       "invalidToken": "Invalid token",
       "pleaseLogin": "Please login again",
-      "methodNotAllowed": "Method not allowed"
+      "methodNotAllowed": "Method not allowed",
+      "connectionTestFailed": "Storage bucket connection test failed",
+      "failedToRetrieveConnections": "Failed to retrieve storage connections",
+      "failedToCreateConnection": "Failed to create storage connection",
+      "failedToUpdateConnection": "Failed to update storage connection",
+      "failedToDeleteConnection": "Failed to delete storage connection",
+      "connectionCreationFailed": "Failed to create storage bucket connection",
+      "duplicateConnection": "Storage bucket connection already exists",
+      "bucketExists": "Storage bucket {bucket} is already connected in {type} service with connection name: {existingName}",
+      "connectionNotFound": "Storage bucket connection not found",
+      "internalError": "Internal server error"
     }
   },
   "login": {

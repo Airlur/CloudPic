@@ -1,22 +1,29 @@
-import { RouterProvider } from 'react-router-dom';
-import CssBaseline from '@mui/material/CssBaseline';
+import { useEffect } from 'react';
+import { RouterProvider, useNavigate } from 'react-router-dom';
+import { verify } from '@/services/auth/auth';
 import router from './routes/Router';
-import './i18n/i18n';
-import { CustomThemeProvider } from './themes/ThemeContext';
 
-function App() {
-  return (
-    <CustomThemeProvider>
-      <CssBaseline />
-      <RouterProvider 
-        router={router} 
-        future={{
-          v7_startTransition: true,
-          v7_relativeSplatPath: true
-        } as any}
-      />
-    </CustomThemeProvider>
-  );
+function AuthCheck() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const isAuthed = await verify();
+      if (!isAuthed) {
+        navigate('/login');
+      }
+    };
+    checkAuth();
+  }, []);
+
+  return null;
 }
 
-export default App;
+export default function App() {
+  return (
+    <>
+      <AuthCheck />
+      <RouterProvider router={router} />
+    </>
+  );
+}

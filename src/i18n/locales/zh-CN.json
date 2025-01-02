@@ -18,11 +18,10 @@
       "logout": "登出成功",
       "tokenRefresh": "Token已更新",
       "verify": "验证成功",
-      "connectionTest": "连接测试成功",
-      "connectionsRetrieved": "获取存储连接列表成功",
-      "connectionCreated": "创建存储连接成功",
-      "connectionUpdated": "更新存储连接成功",
-      "connectionDeleted": "删除存储连接成功"
+      "connectionTest": "存储桶连接测试成功",
+      "connectionCreated": "存储桶连接已创建",
+      "connectionsRetrieved": "已获取存储桶连接列表",
+      "connectionDeleted": "存储桶连接已删除"
     },
     "error": {
       "login": "登录失败",
@@ -33,11 +32,16 @@
       "invalidToken": "无效的Token",
       "pleaseLogin": "请重新登录",
       "methodNotAllowed": "不支持的请求方法",
-      "connectionTestFailed": "连接测试失败",
+      "connectionTestFailed": "存储桶连接测试失败",
       "failedToRetrieveConnections": "获取存储连接列表失败",
       "failedToCreateConnection": "创建存储连接失败",
       "failedToUpdateConnection": "更新存储连接失败",
-      "failedToDeleteConnection": "删除存储连接失败"
+      "failedToDeleteConnection": "删除存储连接失败",
+      "connectionCreationFailed": "创建存储桶连接失败",
+      "duplicateConnection": "存储桶连接已存在",
+      "bucketExists": "存储桶 {bucket} 已在 {type} 服务中被连接，现有连接名称为：{existingName}",
+      "connectionNotFound": "未找到指定的存储桶连接",
+      "internalError": "服务器内部错误"
     }
   },
   "login": {

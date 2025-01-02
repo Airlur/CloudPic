@@ -74,8 +74,7 @@ app.post('/api/auth/logout', adaptHandler(authHandler));
 app.post('/api/storage/test', adaptHandler(storageHandler));
 app.post('/api/storage', adaptHandler(storageHandler));
 app.get('/api/storage', adaptHandler(storageHandler));
-app.put('/api/storage/:id', adaptHandler(storageHandler));
-app.delete('/api/storage/:id', adaptHandler(storageHandler));
+app.delete('/api/storage', adaptHandler(storageHandler));
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
