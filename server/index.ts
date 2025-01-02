@@ -3,7 +3,8 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { config } from 'dotenv';
 import authHandler from '../api/auth/index';
-import storageHandler from '../api/services/storage/index';
+import storageHandler from '../api/services/storage/handlers/connections';
+import filesHandler from '../api/services/storage/handlers/files';
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { IncomingMessage, ServerResponse } from 'http';
 
@@ -75,6 +76,9 @@ app.post('/api/storage/test', adaptHandler(storageHandler));
 app.post('/api/storage', adaptHandler(storageHandler));
 app.get('/api/storage', adaptHandler(storageHandler));
 app.delete('/api/storage', adaptHandler(storageHandler));
+
+// 文件操作路由
+app.get('/api/storage/files', adaptHandler(filesHandler));
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);

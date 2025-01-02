@@ -1,10 +1,10 @@
-import { db } from '../db/client';
-import { StorageFactory } from './storage-factory'
-import { StorageConnection } from './storage-service.types';
+import { db } from '../../db/client';
+import { StorageFactory } from '../storage-factory'
+import { StorageConnection } from '../storage-service.types';
 import { nanoid } from 'nanoid';
-import { ResponseCode } from '../../../src/constants/httpCode';
+import { ResponseCode } from '../../../../src/constants/httpCode';
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { withAuth, AuthenticatedRequest } from '../../auth/middleware';
+import { withAuth, AuthenticatedRequest } from '../../../auth/middleware';
 
 interface StorageConnectionPreview {
   id: string;
@@ -24,7 +24,7 @@ export default withAuth(async function handler(
   const url = new URL(req.url!, `http://${req.headers.host}`);
 
   try {
-    // 测试连接
+    // 测试连接并保存
     if (method === 'POST' && url.pathname.endsWith('/test')) {
       const { type, credentials } = req.body;
       try {
@@ -46,6 +46,7 @@ export default withAuth(async function handler(
           message: 'response.success.connectionTest',
           data: { 
             success: true,
+            id,  // 返回 id 供后续使用
             name,
             authInfo
           }

@@ -6,13 +6,9 @@ export class StorageFactory {
   static create(config: Pick<StorageConnection, 'type' | 'credentials'>): IStorageService {
     switch(config.type) {
       case 'b2':
-        if (!config.credentials.bucket) {
-          throw new Error('Bucket is required for B2 storage');
-        }
         return new B2StorageService({
           accessKey: config.credentials.accessKey,
-          secretKey: config.credentials.secretKey,
-          bucket: config.credentials.bucket
+          secretKey: config.credentials.secretKey
         });
       case 'r2':
         throw new Error('R2 storage not implemented yet');
