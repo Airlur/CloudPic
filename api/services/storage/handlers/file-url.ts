@@ -54,7 +54,7 @@ export default withAuth(async function getFileUrlHandler(
       Object.assign(service, { authInfo: parsedAuthInfo });
     }
 
-    const url = service.getFileUrl(path as string, Number(expiresIn));
+    const url = await service.getFileUrl(path as string, Number(expiresIn));
     
     return res.status(200).json({
       code: ResponseCode.SUCCESS,

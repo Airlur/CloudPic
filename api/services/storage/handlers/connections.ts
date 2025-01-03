@@ -80,26 +80,26 @@ export default withAuth(async function handler(
       const { type, credentials } = req.body;
       const name = credentials.bucket;
       
-      // 检查是否存在同类型的同名存储桶
-      const existingConnection = await db.query(
-        'SELECT name FROM storage_connections WHERE name = $1 AND type = $2',
-        [name, type]
-      ) as StorageConnection[];
-      
-      if (existingConnection.length > 0) {
-        return res.status(400).json({
-          code: ResponseCode.BAD_REQUEST,
-          message: 'response.error.duplicateConnection',
-          data: { 
-            error: 'response.error.bucketExists',
-            name,
-            type,
-            existingName: existingConnection[0].name
-          }
-        });
-      }
-
       try {
+        // 检查是否存在同类型的同名存储桶
+        const existingConnection = await db.query(
+          'SELECT name FROM storage_connections WHERE name = $1 AND type = $2',
+          [name, type]
+        ) as StorageConnection[];
+        
+        if (existingConnection.length > 0) {
+          return res.status(400).json({
+            code: ResponseCode.BAD_REQUEST,
+            message: 'response.error.duplicateConnection',
+            data: { 
+              error: 'response.error.bucketExists',
+              name,
+              type,
+              existingName: existingConnection[0].name
+            }
+          });
+        }
+
         // 测试连接
         const service = StorageFactory.create({ type, credentials });
         const authInfo = await service.connect();
@@ -124,6 +124,7 @@ export default withAuth(async function handler(
           }
         });
       } catch (error: any) {
+        // 这里只处理真正的连接错误
         return res.status(400).json({
           code: ResponseCode.BAD_REQUEST,
           message: 'response.error.connectionCreationFailed',

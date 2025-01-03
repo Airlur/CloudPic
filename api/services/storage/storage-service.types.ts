@@ -50,7 +50,7 @@ export interface IStorageService {
   uploadFile(file: File, path: string): Promise<string>;
   deleteFile(path: string): Promise<void>;
   listFiles(prefix?: string): Promise<StorageFile[]>;
-  getFileUrl(path: string, expiresIn?: number): string;
+  getFileUrl(path: string, expiresIn?: number): Promise<string>;
   createFolder(path: string): Promise<void>;
   deleteFolder(path: string): Promise<void>;
   move(from: string, to: string): Promise<void>;

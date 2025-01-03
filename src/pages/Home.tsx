@@ -2,19 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Box, Drawer, AppBar, Toolbar, Typography, Button, List, ListItem, ListItemIcon, 
-  ListItemText, IconButton, Divider, Dialog, DialogContent } from '@mui/material';
+  ListItemText, IconButton, Divider } from '@mui/material';
 import { CloudUpload as CloudUploadIcon, Logout as LogoutIcon, Storage as StorageIcon,
   Add as AddIcon, Delete as DeleteIcon, DriveFileMove as DriveFileMoveIcon,
   DarkMode as DarkModeIcon, LightMode as LightModeIcon, Cloud as CloudIcon,
   CreateNewFolder as CreateNewFolderIcon, Download as DownloadIcon } from '@mui/icons-material';
 import { LanguageSwitch, CustomTooltip, CustomAlert } from '@/components';
-import { FileView } from '@/components/data-display';
+import { FileView, FilePreview } from '@/components/data-display';
 import { useTheme } from '@/themes/ThemeContext';
 import { logout } from '@/services/auth/auth';
 import { FileItem, ViewMode } from '@/types/file';
-import { StorageProviderSelect } from '@/components/feedback';
-import { B2ConnectionForm } from '@/components/data-display/storage-forms';
-import { createStorageConnection } from '@/services/storage';
+import { StorageProviderDialog } from '@/components/dialogs/StorageProviderDialog';
+import { StorageConnectionDialog } from '@/components/dialogs/StorageConnectionDialog';
+import { getStorageConnections, getFileList } from '@/services/storage/storage';
+import type { StorageConnection } from '@/services/storage/storage';
 
 const DRAWER_WIDTH = 240;
 
@@ -152,55 +153,6 @@ const styles = {
   },
 } as const;
 
-// 模拟的存储服务数据
-const STORAGE_SERVICES = [
-  { id: 'b2', name: 'Backblaze B2', type: 'B2', buckets: ['photos', 'documents'] },
-  { id: 'r2', name: 'Cloudflare R2', type: 'R2', buckets: ['assets', 'backups'] },
-];
-
-// 模拟的文件数据，根据不同的存储桶返回不同的数据
-const getMockFiles = (serviceId: string, path: string): FileItem[] => {
-  if (serviceId === 'b2') {
-    return [
-      { 
-        id: 1, 
-        name: 'example1.jpg', 
-        size: '2.4 MB', 
-        modified: '2023-12-26 14:30',
-        type: 'file',
-        mimeType: 'image/jpeg',
-        path: path
-      },
-      { 
-        id: 2, 
-        name: 'documents', 
-        size: '1.1 MB', 
-        modified: '2023-12-25 09:15',
-        type: 'folder',
-        path: path
-      }
-    ];
-  }
-  return [
-    { 
-      id: 3, 
-      name: 'assets.zip', 
-      size: '5.4 MB', 
-      modified: '2023-12-26 15:30',
-      type: 'file',
-      mimeType: 'application/zip',
-      path: path
-    },
-    { 
-      id: 4, 
-      name: 'backups', 
-      size: '2.1 GB', 
-      modified: '2023-12-25 19:15',
-      type: 'folder',
-      path: path
-    }
-  ];
-};
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -219,16 +171,22 @@ const Home: React.FC = () => {
     message: string;
     severity: 'success' | 'error';
   }>({ show: false, message: '', severity: 'success' });
-  const [dialogState, setDialogState] = useState<{
-    showProviderSelect: boolean;
-    showB2Form: boolean;
-    isConnecting: boolean;
-  }>({
+  const [dialogState, setDialogState] = useState({
     showProviderSelect: false,
-    showB2Form: false,
-    isConnecting: false
+    showConnectionForm: false,
+    selectedProvider: ''
   });
-  
+  const [storageConnections, setStorageConnections] = useState<StorageConnection[]>([]);
+  const [previewState, setPreviewState] = useState<{
+    open: boolean;
+    files: Array<{ url: string; mimeType: string; }>;
+    currentIndex: number;
+  }>({
+    open: false,
+    files: [],
+    currentIndex: 0
+  });
+
   // 从路由中获取当前服务和路径
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -239,7 +197,14 @@ const Home: React.FC = () => {
     setCurrentPath(path);
     
     if (service) {
-      setFiles(getMockFiles(service, path));
+      const fetchFiles = async () => {
+        const prefix = path === '/' ? undefined : path.startsWith('/') ? path.slice(1) : path;
+        const response = await getFileList(service, prefix);
+        if (response.code === 200 && response.data) {
+          setFiles(response.data.files);
+        }
+      };
+      fetchFiles();
     }
   }, [location]);
 
@@ -250,14 +215,35 @@ const Home: React.FC = () => {
 
   // 处理文件夹导航
   const handlePreview = (file: FileItem) => {
-    if (file.type === 'folder') {
+    if (file.isDirectory) {
       const newPath = currentPath === '/' 
         ? `/${file.name}` 
         : `${currentPath}/${file.name}`;
       navigate(`/?service=${currentService}&path=${encodeURIComponent(newPath)}`);
-    } else {
-      // 处理文件预览
-      console.log('Preview file:', file.name);
+    } else if (file.url) {
+      // 收集所有可预览的文件（图片和视频）
+      const previewableFiles = files
+        .filter(f => 
+          (f.mimeType.startsWith('image/') || f.mimeType.startsWith('video/')) && f.url
+        )
+        .map(f => ({
+          url: f.url!,
+          mimeType: f.mimeType
+        }));
+      
+      if (previewableFiles.length > 0) {
+        const currentIndex = previewableFiles.findIndex(
+          f => f.url === file.url
+        );
+        
+        if (currentIndex !== -1) {
+          setPreviewState({
+            open: true,
+            files: previewableFiles,
+            currentIndex
+          });
+        }
+      }
     }
   };
 
@@ -365,26 +351,39 @@ const Home: React.FC = () => {
 
   // 处理服务商选择
   const handleProviderSelect = (providerId: string) => {
-    setDialogState(prev => ({
-      ...prev,
+    setDialogState({
       showProviderSelect: false,
-      showB2Form: providerId === 'b2'
-    }));
+      showConnectionForm: true,
+      selectedProvider: providerId
+    });
   };
 
-  // 处理 B2 连接
-  const handleB2Connect = async (data: any) => {
-    try {
-      setDialogState(prev => ({ ...prev, isConnecting: true }));
-      await createStorageConnection(data);
-      setDialogState(prev => ({ ...prev, showB2Form: false }));
-      // TODO: 刷新连接列表
-    } catch (error) {
-      console.error('Failed to connect:', error);
-    } finally {
-      setDialogState(prev => ({ ...prev, isConnecting: false }));
+  const handleCloseDialogs = () => {
+    setDialogState({
+      showProviderSelect: false,
+      showConnectionForm: false,
+      selectedProvider: ''
+    });
+  };
+
+  const fetchStorageConnections = async () => {
+    const response = await getStorageConnections();
+    if (response.code === 200 && response.data) {
+      setStorageConnections(response.data);
     }
   };
+
+  const handleClosePreview = () => {
+    setPreviewState({
+      open: false,
+      files: [],
+      currentIndex: 0
+    });
+  };
+
+  useEffect(() => {
+    fetchStorageConnections();
+  }, []);
 
   return (
     <Box sx={styles.root}>
@@ -441,19 +440,19 @@ const Home: React.FC = () => {
         </Button>
         <Divider />
         <List>
-          {STORAGE_SERVICES.map((service) => (
+          {storageConnections.map((connection) => (
             <ListItem 
               button 
-              key={service.id}
-              selected={currentService === service.id}
-              onClick={() => handleServiceSelect(service.id)}
+              key={connection.id}
+              selected={currentService === connection.id}
+              onClick={() => handleServiceSelect(connection.id)}
             >
               <ListItemIcon>
-                <StorageIcon color={currentService === service.id ? "primary" : "inherit"} />
+                <StorageIcon color={currentService === connection.id ? "primary" : "inherit"} />
               </ListItemIcon>
               <ListItemText 
-                primary={service.name} 
-                secondary={service.type} 
+                primary={connection.name} 
+                secondary={connection.type} 
               />
             </ListItem>
           ))}
@@ -561,25 +560,27 @@ const Home: React.FC = () => {
         onClose={handleCloseAlert}
       />
 
-      {/* 服务商选择弹窗 */}
-      <StorageProviderSelect
+      <StorageProviderDialog
         open={dialogState.showProviderSelect}
-        onClose={() => setDialogState(prev => ({ ...prev, showProviderSelect: false }))}
+        onClose={handleCloseDialogs}
         onSelect={handleProviderSelect}
       />
 
-      {/* B2 连接表单弹窗 */}
-      <Dialog 
-        open={dialogState.showB2Form} 
-        onClose={() => setDialogState(prev => ({ ...prev, showB2Form: false }))}
-      >
-        <DialogContent>
-          <B2ConnectionForm
-            onSubmit={handleB2Connect}
-            isLoading={dialogState.isConnecting}
-          />
-        </DialogContent>
-      </Dialog>
+      <StorageConnectionDialog
+        open={dialogState.showConnectionForm}
+        providerId={dialogState.selectedProvider}
+        onClose={handleCloseDialogs}
+        onSuccess={() => {
+          // TODO: 刷新存储连接列表
+        }}
+      />
+
+      <FilePreview 
+        open={previewState.open}
+        files={previewState.files}
+        currentIndex={previewState.currentIndex}
+        onClose={handleClosePreview}
+      />
     </Box>
   );
 };

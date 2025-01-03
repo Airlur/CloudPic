@@ -11,6 +11,7 @@ import {
   IconButton,
   Checkbox,
   Box,
+  Typography,
 } from '@mui/material';
 import {
   Delete as DeleteIcon,
@@ -18,9 +19,10 @@ import {
   Download as DownloadIcon,
   Folder as FolderIcon,
   InsertDriveFile as FileIcon,
+  PlayArrow as PlayArrowIcon,
 } from '@mui/icons-material';
-import { CustomTooltip } from '@/components/feedback';
 import { FileItem, FileActionProps } from '@/types/file';
+import { formatFileSize } from '@/utils/format';
 
 interface FileListProps extends FileActionProps {
   files: FileItem[];
@@ -63,6 +65,19 @@ const styles = {
   dataCell: {
     textAlign: 'center',
   },
+  nameCell: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    gap: 1,
+    minWidth: '150px',
+  },
+  actions: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    gap: 1,
+  },
 } as const;
 
 const FileList: React.FC<FileListProps> = ({
@@ -75,6 +90,83 @@ const FileList: React.FC<FileListProps> = ({
   onPreview,
 }) => {
   const { t } = useTranslation();
+
+  const handleRowClick = (file: FileItem, event: React.MouseEvent) => {
+    // 如果点击的是复选框或操作按钮区域，不处理
+    if (
+      (event.target as HTMLElement).closest('.MuiCheckbox-root') ||
+      (event.target as HTMLElement).closest('.file-actions')
+    ) {
+      return;
+    }
+    
+    // 如果是文件夹，触发预览（实际是导航）
+    if (file.isDirectory) {
+      onPreview(file);
+      return;
+    }
+    
+    // 如果是文件且有 URL，触发预览
+    if (!file.isDirectory && file.url) {
+      onPreview(file);
+    }
+  };
+
+  const renderFileIcon = (file: FileItem) => {
+    if (file.isDirectory) {
+      return <FolderIcon color="primary" />;
+    }
+
+    // 对于图片文件，显示缩略图
+    if (file.mimeType.startsWith('image/') && file.url) {
+      return (
+        <Box
+          component="img"
+          src={file.url}
+          sx={{
+            width: 32,
+            height: 32,
+            objectFit: 'cover',
+            borderRadius: 1,
+            mr: 1
+          }}
+        />
+      );
+    }
+
+    // 对于视频文件，显示视频缩略图
+    if (file.mimeType.startsWith('video/') && file.url) {
+      return (
+        <Box sx={{ position: 'relative', mr: 1 }}>
+          <video
+            src={file.url}
+            style={{
+              width: 32,
+              height: 32,
+              objectFit: 'cover',
+              borderRadius: 4
+            }}
+          />
+          <PlayArrowIcon
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              fontSize: 16,
+              color: 'white',
+              bgcolor: 'rgba(0, 0, 0, 0.5)',
+              borderRadius: '50%',
+              p: 0.25
+            }}
+          />
+        </Box>
+      );
+    }
+
+    // 其他文件类型显示默认图标
+    return <FileIcon />;
+  };
 
   return (
     <TableContainer component={Paper} sx={styles.tableContainer}>
@@ -91,67 +183,66 @@ const FileList: React.FC<FileListProps> = ({
         <TableBody>
           {files.map((file) => (
             <TableRow
-              key={file.id}
+              key={file.name}
               hover
-              onClick={() => onPreview(file)}
-              sx={{ cursor: 'pointer' }}
+              selected={selectedFiles.has(file.name)}
+              onClick={(e) => handleRowClick(file, e)}
+              style={{ cursor: 'pointer' }}
             >
-              <TableCell padding="checkbox" sx={styles.checkbox}>
+              <TableCell padding="checkbox">
                 <Checkbox
-                  checked={selectedFiles.has(file.id)}
+                  className="MuiCheckbox-root"
+                  checked={selectedFiles.has(file.name)}
                   onChange={(e) => {
                     e.stopPropagation();
-                    onToggleSelect(file.id);
+                    onToggleSelect(file.name);
                   }}
-                  sx={{ padding: '2px' }}
                 />
               </TableCell>
-              <TableCell sx={styles.fileNameColumn}>
-                <Box sx={styles.fileNameCell}>
-                  {file.type === 'folder' ? (
-                    <FolderIcon sx={styles.fileIcon} color="primary" />
-                  ) : (
-                    <FileIcon sx={styles.fileIcon} color="action" />
-                  )}
-                  <CustomTooltip 
-                    title={file.name} 
-                    placement="bottom" 
-                    enterDelay={500}
-                  >
-                    <span style={styles.fileName}>{file.name}</span>
-                  </CustomTooltip>
+              <TableCell>
+                <Box sx={styles.nameCell}>
+                  {renderFileIcon(file)}
+                  <Typography sx={styles.fileName}>
+                    {file.name}
+                  </Typography>
                 </Box>
               </TableCell>
-              <TableCell sx={styles.dataCell}>{file.size}</TableCell>
-              <TableCell sx={styles.dataCell}>{file.modified}</TableCell>
               <TableCell sx={styles.dataCell}>
-                <IconButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(file);
-                  }}
-                >
-                  <DeleteIcon />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onMove(file);
-                  }}
-                >
-                  <MoveIcon />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDownload(file);
-                  }}
-                >
-                  <DownloadIcon />
-                </IconButton>
+                {file.isDirectory ? '-' : formatFileSize(file.size)}
+              </TableCell>
+              <TableCell sx={styles.dataCell}>
+                {new Date(file.lastModified).toLocaleString()}
+              </TableCell>
+              <TableCell>
+                <Box className="file-actions" sx={styles.actions}>
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(file);
+                    }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onMove(file);
+                    }}
+                  >
+                    <MoveIcon />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDownload(file);
+                    }}
+                  >
+                    <DownloadIcon />
+                  </IconButton>
+                </Box>
               </TableCell>
             </TableRow>
           ))}

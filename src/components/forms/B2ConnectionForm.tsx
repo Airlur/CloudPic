@@ -9,13 +9,9 @@ export interface B2Credentials {
   bucket: string;
 }
 
-export interface B2ConnectionData {
-  type: 'b2';
-  credentials: B2Credentials;
-}
-
 interface Props {
-  onSubmit: (data: B2ConnectionData) => void;
+  onClose?: () => void;
+  onSubmit: (credentials: B2Credentials) => Promise<void>;
   isLoading?: boolean;
 }
 
@@ -24,14 +20,11 @@ export const B2ConnectionForm: React.FC<Props> = ({ onSubmit, isLoading = false 
   const { 
     register, 
     handleSubmit, 
-    formState: { errors } 
+    formState: { errors },
   } = useForm<B2Credentials>();
 
-  const onFormSubmit: SubmitHandler<B2Credentials> = (data) => {
-    onSubmit({
-      type: 'b2',
-      credentials: data
-    });
+  const onFormSubmit: SubmitHandler<B2Credentials> = (credentials) => {
+    onSubmit(credentials);
   };
 
   return (

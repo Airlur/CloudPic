@@ -19,6 +19,11 @@ export class B2StorageService implements IStorageService {
   set authInfo(info: B2AuthInfo | null) {
     this._authInfo = info;
     if (info) {
+      // 重新初始化 B2 客户端
+      this.b2 = new B2({
+        applicationKeyId: this.b2.applicationKeyId,
+        applicationKey: this.b2.applicationKey
+      });
       this.b2.authorize({
         apiUrl: info.apiUrl,
         authorizationToken: info.authorizationToken
@@ -105,24 +110,10 @@ export class B2StorageService implements IStorageService {
 
   // 列出文件
   async listFiles(prefix?: string, maxFiles: number = 1000): Promise<StorageFile[]> {
-    // 先进行认证
-    try {
-      const authResponse = await this.b2.authorize();
-    
-      this._authInfo = authResponse.data;
-    } catch (error: any) {  // 明确指定 error 类型
-      console.error('Authorization failed:', {
-        message: error?.message || 'Unknown error',
-        name: error?.name
-      });
-      throw new Error(`Failed to authorize: ${error?.message || 'Unknown error'}`);
-    }
-
     if (!this._authInfo) {
       throw new Error('Not authenticated with B2. Call connect() first.');
     }
 
-    // 使用 authInfo 中的 bucketId
     const bucketId = this._authInfo.allowed.bucketId;
     if (!bucketId) {
       throw new Error('Bucket ID not found in auth info');
@@ -132,19 +123,24 @@ export class B2StorageService implements IStorageService {
     let startFileName: string | undefined;
 
     try {
+      // 获取下载授权
+      const downloadAuthResponse = await this.b2.getDownloadAuthorization({
+        bucketId: bucketId,
+        fileNamePrefix: prefix || '',
+        validDurationInSeconds: 3600  // 1小时有效期
+      });
+
+      const authToken = downloadAuthResponse.data.authorizationToken;
+      const bucketName = this._authInfo.allowed.bucketName;
+      const downloadUrl = this._authInfo.downloadUrl;
+
       while (files.length < maxFiles) {
         const response = await this.b2.listFileNames({
-          bucketId,  // 使用 authInfo 中的 bucketId
+          bucketId,
           prefix: prefix || '',
           startFileName,
           maxFileCount: Math.min(1000, maxFiles - files.length),
           delimiter: '/'
-        });
-
-        const downloadAuth = await this.b2.getDownloadAuthorization({
-          bucketId: this._authInfo!.allowed.bucketId,
-          fileNamePrefix: prefix || '',
-          validDurationInSeconds: 3600  // 1小时有效期
         });
 
         const newFiles = response.data.files.map((file: {
@@ -154,19 +150,23 @@ export class B2StorageService implements IStorageService {
           contentType: string;
           fileId: string;
           action: string;
-        }) => ({
-          name: file.fileName,
-          size: file.contentLength,
-          lastModified: new Date(file.uploadTimestamp),
-          mimeType: file.contentType || 'application/octet-stream',
-          etag: file.fileId,
-          isDirectory: file.fileName.endsWith('/') || file.action === 'folder',
-          url: !file.fileName.endsWith('/') ? 
-            `${this._authInfo!.downloadUrl}/file/${this._authInfo!.allowed.bucketName}/${file.fileName}?Authorization=${downloadAuth.data.authorizationToken}` : 
-            null
-        }));
+        }) => {
+          // 始终根据文件扩展名判断 MIME 类型
+          const mimeType = this.getMimeType(file.fileName);
+          return {
+            name: file.fileName,
+            size: file.contentLength,
+            lastModified: new Date(file.uploadTimestamp),
+            mimeType,
+            etag: file.fileId,
+            isDirectory: file.fileName.endsWith('/') || file.action === 'folder',
+            url: !file.fileName.endsWith('/') ? 
+              `${downloadUrl}/file/${bucketName}/${encodeURIComponent(file.fileName)}?Authorization=${authToken}` : 
+              null
+          };
+        });
 
-        // 添加文件夹（如果有）
+        // 添加文件夹
         if (response.data.folders) {
           const folders = response.data.folders.map((folderName: string) => ({
             name: folderName,
@@ -174,7 +174,8 @@ export class B2StorageService implements IStorageService {
             lastModified: new Date(),
             mimeType: 'application/directory',
             etag: '',
-            isDirectory: true
+            isDirectory: true,
+            url: null
           }));
           files = [...files, ...folders];
         }
@@ -187,24 +188,87 @@ export class B2StorageService implements IStorageService {
 
       return files.slice(0, maxFiles);
     } catch (error: any) {
+      // 如果是认证错误，尝试重新认证
+      if (error.message.includes('Invalid authorizationToken')) {
+        const auth = await this.b2.authorize();
+        this._authInfo = {
+          ...this._authInfo!,
+          authorizationToken: auth.data.authorizationToken,
+          apiUrl: auth.data.apiUrl,
+          downloadUrl: auth.data.downloadUrl
+        };
+        
+        // 递归调用自身重试
+        return this.listFiles(prefix, maxFiles);
+      }
+      
+      console.error('List files error:', error);
       throw new Error(`Failed to list files: ${error.message}`);
     }
   }
 
+  // 根据文件扩展名获取 MIME 类型
+  private getMimeType(fileName: string): string {
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    const mimeTypes: { [key: string]: string } = {
+      'png': 'image/png',
+      'jpg': 'image/jpeg',
+      'jpeg': 'image/jpeg',
+      'gif': 'image/gif',
+      'webp': 'image/webp',
+      'mp4': 'video/mp4',
+      'mov': 'video/quicktime',
+      'avi': 'video/x-msvideo',
+      'mkv': 'video/x-matroska',
+      'pdf': 'application/pdf',
+      'doc': 'application/msword',
+      'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'txt': 'text/plain',
+      'zip': 'application/zip',
+      'rar': 'application/x-rar-compressed'
+    };
+    return mimeTypes[ext || ''] || 'application/octet-stream';
+  }
+
   // 获取文件 URL
-  getFileUrl(path: string, expiresIn: number = 3600): string {
+  async getFileUrl(path: string, expiresIn: number = 3600): Promise<string> {
     if (!this.authInfo?.downloadUrl) {
       throw new Error('Not connected to B2');
     }
 
-    // 生成授权下载 URL
-    const downloadAuth = this.b2.getDownloadAuthorization({
-      bucketId: this.authInfo.allowed.bucketId,
-      fileNamePrefix: path,
-      validDurationInSeconds: expiresIn
-    });
+    try {
+      // 获取下载授权
+      const downloadAuthResponse = await this.b2.getDownloadAuthorization({
+        bucketId: this.authInfo.allowed.bucketId,
+        fileNamePrefix: path,
+        validDurationInSeconds: expiresIn
+      });
 
-    return `${this.authInfo.downloadUrl}/file/${this.authInfo.allowed.bucketId}/${path}?Authorization=${downloadAuth}`;
+      return `${this.authInfo.downloadUrl}/file/${this.authInfo.allowed.bucketName}/${encodeURIComponent(path)}?Authorization=${downloadAuthResponse.data.authorizationToken}`;
+    } catch (error: any) {
+      // 如果是认证错误，尝试重新认证
+      if (error.message.includes('Invalid authorizationToken')) {
+        const auth = await this.b2.authorize();
+        this._authInfo = {
+          ...this._authInfo!,
+          authorizationToken: auth.data.authorizationToken,
+          apiUrl: auth.data.apiUrl,
+          downloadUrl: auth.data.downloadUrl
+        };
+        
+        // 重新尝试获取下载授权
+        const downloadAuthResponse = await this.b2.getDownloadAuthorization({
+          bucketId: this.authInfo.allowed.bucketId,
+          fileNamePrefix: path,
+          validDurationInSeconds: expiresIn
+        });
+
+        return `${this.authInfo.downloadUrl}/file/${this.authInfo.allowed.bucketName}/${encodeURIComponent(path)}?Authorization=${downloadAuthResponse.data.authorizationToken}`;
+      }
+      
+      console.error('Get file URL error:', error);
+      throw new Error(`Failed to generate file URL: ${error.message}`);
+    }
   }
 
   // 创建文件夹

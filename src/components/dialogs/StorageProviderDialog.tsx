@@ -32,7 +32,7 @@ interface Props {
   onSelect: (providerId: string) => void;
 }
 
-export const StorageProviderSelect: React.FC<Props> = ({ open, onClose, onSelect }) => {
+export const StorageProviderDialog: React.FC<Props> = ({ open, onClose, onSelect }) => {
   const { t } = useTranslation();
 
   return (
