@@ -7,6 +7,7 @@ import storageHandler from '../api/services/storage/handlers/connections';
 import filesHandler from '../api/services/storage/handlers/files';
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { IncomingMessage, ServerResponse } from 'http';
+import getFileUrlHandler from '../api/services/storage/handlers/file-url';
 
 // 加载环境变量
 config({ path: '.env.local' });
@@ -79,6 +80,9 @@ app.delete('/api/storage', adaptHandler(storageHandler));
 
 // 文件操作路由
 app.get('/api/storage/files', adaptHandler(filesHandler));
+
+// 获取文件 URL 路由
+app.get('/api/storage/file-url', adaptHandler(getFileUrlHandler));
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);

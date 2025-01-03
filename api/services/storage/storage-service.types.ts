@@ -25,6 +25,7 @@ export interface StorageFile {
   mimeType?: string;     // 文件类型 (通用)
   etag?: string;         // 文件标识 (通用)
   isDirectory?: boolean; // 是否是目录 (通用)
+  url?: string;          // 文件URL (通用)
 }
 
 // B2完整认证信息类型
@@ -49,7 +50,7 @@ export interface IStorageService {
   uploadFile(file: File, path: string): Promise<string>;
   deleteFile(path: string): Promise<void>;
   listFiles(prefix?: string): Promise<StorageFile[]>;
-  getFileUrl(path: string): string;
+  getFileUrl(path: string, expiresIn?: number): string;
   createFolder(path: string): Promise<void>;
   deleteFolder(path: string): Promise<void>;
   move(from: string, to: string): Promise<void>;

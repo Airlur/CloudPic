@@ -10,7 +10,9 @@
     "edit": "编辑",
     "loading": "加载中...",
     "darkMode": "深色模式",
-    "lightMode": "浅色模式"
+    "lightMode": "浅色模式",
+    "connect": "连接",
+    "required": "此字段为必填项"
   },
   "response": {
     "success": {
@@ -79,5 +81,12 @@
     "moveSuccess": "{{name}} 移动成功",
     "downloadStarted": "开始下载 {{name}}",
     "deleteSuccess": "{{name}} 删除成功"
+  },
+  "storage": {
+    "selectProvider": "选择存储服务商",
+    "accessKey": "访问密钥",
+    "secretKey": "密钥",
+    "bucket": "存储桶名称",
+    "connectToB2": "连接到 Backblaze B2"
   }
 } 

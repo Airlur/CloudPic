@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Box, Drawer, AppBar, Toolbar, Typography, Button, List, ListItem, ListItemIcon, 
-  ListItemText, IconButton, Divider } from '@mui/material';
+  ListItemText, IconButton, Divider, Dialog, DialogContent } from '@mui/material';
 import { CloudUpload as CloudUploadIcon, Logout as LogoutIcon, Storage as StorageIcon,
   Add as AddIcon, Delete as DeleteIcon, DriveFileMove as DriveFileMoveIcon,
   DarkMode as DarkModeIcon, LightMode as LightModeIcon, Cloud as CloudIcon,
@@ -12,6 +12,9 @@ import { FileView } from '@/components/data-display';
 import { useTheme } from '@/themes/ThemeContext';
 import { logout } from '@/services/auth/auth';
 import { FileItem, ViewMode } from '@/types/file';
+import { StorageProviderSelect } from '@/components/feedback';
+import { B2ConnectionForm } from '@/components/data-display/storage-forms';
+import { createStorageConnection } from '@/services/storage';
 
 const DRAWER_WIDTH = 240;
 
@@ -216,6 +219,15 @@ const Home: React.FC = () => {
     message: string;
     severity: 'success' | 'error';
   }>({ show: false, message: '', severity: 'success' });
+  const [dialogState, setDialogState] = useState<{
+    showProviderSelect: boolean;
+    showB2Form: boolean;
+    isConnecting: boolean;
+  }>({
+    showProviderSelect: false,
+    showB2Form: false,
+    isConnecting: false
+  });
   
   // 从路由中获取当前服务和路径
   useEffect(() => {
@@ -343,6 +355,37 @@ const Home: React.FC = () => {
     setAlert(prev => ({ ...prev, show: false }));
   };
 
+  // 处理"添加连接"按钮点击
+  const handleAddConnection = () => {
+    setDialogState(prev => ({
+      ...prev,
+      showProviderSelect: true
+    }));
+  };
+
+  // 处理服务商选择
+  const handleProviderSelect = (providerId: string) => {
+    setDialogState(prev => ({
+      ...prev,
+      showProviderSelect: false,
+      showB2Form: providerId === 'b2'
+    }));
+  };
+
+  // 处理 B2 连接
+  const handleB2Connect = async (data: any) => {
+    try {
+      setDialogState(prev => ({ ...prev, isConnecting: true }));
+      await createStorageConnection(data);
+      setDialogState(prev => ({ ...prev, showB2Form: false }));
+      // TODO: 刷新连接列表
+    } catch (error) {
+      console.error('Failed to connect:', error);
+    } finally {
+      setDialogState(prev => ({ ...prev, isConnecting: false }));
+    }
+  };
+
   return (
     <Box sx={styles.root}>
       <AppBar position="fixed" sx={styles.appBar}>
@@ -392,6 +435,7 @@ const Home: React.FC = () => {
           color="primary"
           startIcon={<AddIcon />}
           sx={styles.addConnectionButton}
+          onClick={handleAddConnection}
         >
           {t('home.addConnection')}
         </Button>
@@ -516,6 +560,26 @@ const Home: React.FC = () => {
         severity={alert.severity}
         onClose={handleCloseAlert}
       />
+
+      {/* 服务商选择弹窗 */}
+      <StorageProviderSelect
+        open={dialogState.showProviderSelect}
+        onClose={() => setDialogState(prev => ({ ...prev, showProviderSelect: false }))}
+        onSelect={handleProviderSelect}
+      />
+
+      {/* B2 连接表单弹窗 */}
+      <Dialog 
+        open={dialogState.showB2Form} 
+        onClose={() => setDialogState(prev => ({ ...prev, showB2Form: false }))}
+      >
+        <DialogContent>
+          <B2ConnectionForm
+            onSubmit={handleB2Connect}
+            isLoading={dialogState.isConnecting}
+          />
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };

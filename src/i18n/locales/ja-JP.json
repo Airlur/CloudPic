@@ -10,7 +10,9 @@
     "edit": "編集",
     "loading": "読み込み中...",
     "darkMode": "ダークモード",
-    "lightMode": "ライトモード"
+    "lightMode": "ライトモード",
+    "connect": "接続",
+    "required": "この項目は必須です"
   },
   "response": {
     "success": {
@@ -79,5 +81,12 @@
     "moveSuccess": "{{name}}を移動しました",
     "downloadStarted": "{{name}}のダウンロードを開始しました",
     "deleteSuccess": "{{name}}を削除しました"
+  },
+  "storage": {
+    "selectProvider": "ストレージプロバイダーを選択",
+    "accessKey": "アクセスキー",
+    "secretKey": "シークレットキー",
+    "bucket": "バケット名",
+    "connectToB2": "Backblaze B2に接続"
   }
 } 

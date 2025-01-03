@@ -2,3 +2,4 @@
 export { default as FileView } from './FileView';
 export { default as FileGrid } from './FileGrid';
 export { default as FileList } from './FileList'; 
+export * from './storage-forms';

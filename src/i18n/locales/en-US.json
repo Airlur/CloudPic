@@ -10,7 +10,9 @@
     "edit": "Edit",
     "loading": "Loading...",
     "darkMode": "Dark Mode",
-    "lightMode": "Light Mode"
+    "lightMode": "Light Mode",
+    "connect": "Connect",
+    "required": "This field is required"
   },
   "response": {
     "success": {
@@ -79,5 +81,12 @@
     "moveSuccess": "{{name}} moved successfully",
     "downloadStarted": "Started downloading {{name}}",
     "deleteSuccess": "{{name}} deleted successfully"
+  },
+  "storage": {
+    "selectProvider": "Select Storage Provider",
+    "accessKey": "Access Key",
+    "secretKey": "Secret Key",
+    "bucket": "Bucket Name",
+    "connectToB2": "Connect to Backblaze B2"
   }
 } 

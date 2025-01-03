@@ -141,6 +141,12 @@ export class B2StorageService implements IStorageService {
           delimiter: '/'
         });
 
+        const downloadAuth = await this.b2.getDownloadAuthorization({
+          bucketId: this._authInfo!.allowed.bucketId,
+          fileNamePrefix: prefix || '',
+          validDurationInSeconds: 3600  // 1小时有效期
+        });
+
         const newFiles = response.data.files.map((file: {
           fileName: string;
           contentLength: number;
@@ -154,7 +160,10 @@ export class B2StorageService implements IStorageService {
           lastModified: new Date(file.uploadTimestamp),
           mimeType: file.contentType || 'application/octet-stream',
           etag: file.fileId,
-          isDirectory: file.fileName.endsWith('/') || file.action === 'folder'
+          isDirectory: file.fileName.endsWith('/') || file.action === 'folder',
+          url: !file.fileName.endsWith('/') ? 
+            `${this._authInfo!.downloadUrl}/file/${this._authInfo!.allowed.bucketName}/${file.fileName}?Authorization=${downloadAuth.data.authorizationToken}` : 
+            null
         }));
 
         // 添加文件夹（如果有）
